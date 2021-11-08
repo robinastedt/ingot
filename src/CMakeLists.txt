@@ -1,4 +1,4 @@
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM REQUIRED)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
