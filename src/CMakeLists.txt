@@ -3,13 +3,10 @@ find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
 set(COMPILER_TARGET ingotc)
-set(CODEGEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/codegen)
-
-make_directory(${CODEGEN_DIR})
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CODEGEN_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}  # Needed for generated parser
 )
 
 add_executable(${COMPILER_TARGET}
