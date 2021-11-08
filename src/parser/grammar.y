@@ -1,10 +1,5 @@
 %{
 #include <iostream>
-#include <string>
-#include <ast/Expression.hh>
-#include <ast/FunctionDefinition.hh>
-
-
 %}
  
 %require "3.7.4"
@@ -21,6 +16,7 @@
 {
     #include <ast/Expression.hh>
     #include <ast/FunctionDefinition.hh>
+    #include <string>
 
     namespace ingot {
         class Scanner;
@@ -35,7 +31,7 @@
     #define yylex(x) scanner->lex(x)
 }
  
-%token                      EOL LPAREN RPAREN
+%token                      LPAREN RPAREN
 %token <int64_t>            INTEGER
 //%token <double>           FLOAT
 %token <std::string>        STRING
@@ -50,16 +46,10 @@
 %precedence                 UMINUS
  
 %%
+module  : %empty
+        | module fundef             { std::cout << $2 << "\n"; }
+        ;
 
-lines   : %empty
-        | lines line
-        ;
- 
-line    : EOL                       { std::cerr << "Read an empty line.\n"; }
-        | fundef EOL                { std::cout << $1 << "\n"; }
-        | error EOL                 { yyerrok; }
-        ;
- 
 fundef  : IDENT ASSIGN expr         { $$ = ast::FunctionDefinition{ast::FunctionPrototype{$1}, $3}; }
 
 expr    : INTEGER                   { $$ = ast::Integer($1); }
