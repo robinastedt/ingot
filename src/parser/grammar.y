@@ -10,10 +10,11 @@
 %define api.parser.class {Parser}
 %define api.namespace {ingot}
 %define api.value.type variant
-%parse-param {Scanner* scanner}
+%parse-param {Scanner* scanner} {ast::AST& outputAST}
  
 %code requires
 {
+    #include <ast/AST.hh>
     #include <ast/Expression.hh>
     #include <ast/FunctionDefinition.hh>
     #include <string>
@@ -47,7 +48,7 @@
  
 %%
 module  : %empty
-        | module fundef             { std::cout << $2 << "\n"; }
+        | module fundef             { outputAST.addDefinition($2); }
         ;
 
 fundef  : IDENT ASSIGN expr         { $$ = ast::FunctionDefinition{ast::FunctionPrototype{$1}, $3}; }
