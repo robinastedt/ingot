@@ -6,7 +6,7 @@
       {
         "name": "Linux",
         "intelliSenseMode": "gcc-x64",
-        "includePath": ["${workspaceFolder}", "${workspaceFolder}/build/codegen"],
+        "includePath": ["${workspaceFolder}/src", "${workspaceFolder}/build/src/codegen"],
         "defines": [],
         "forcedInclude": ["${workspaceFolder}/include/config.h"],
         "compilerPath": "/usr/bin/clang",

@@ -1,48 +1,43 @@
 %{
-#include <cstdlib>
 #include "Parser.hh"
+#include "Scanner.hh"
+
+#define YY_DECL int ingot::Scanner::lex(ingot::Parser::semantic_type *yylval)
 %}
 
-%option reentrant interactive noyywrap noyylineno nodefault outfile="Scanner.cc" header="Scanner.hh"
+%option c++ interactive noyywrap noyylineno nodefault outfile="Scanner.cc"
 
+/*
 dseq            ([[:digit:]]+)
 dseq_opt        ({dseq}?)
 frac            (({dseq_opt}"."{dseq})|{dseq}".")
 exp             ([eE][+-]?{dseq})
 exp_opt         ({exp}?)
-integer         ({dseq})
-float           (({frac}{exp_opt})|({dseq}{exp}))
-intvar          ([[:upper:]])
-fltvar          ([[:lower:]])
-
-%%
- 
-{integer}   yylval->emplace<long long>(strtoll(yytext, nullptr, 10)); return ingot::Parser::token::INT;
-{float}     yylval->emplace<double>(strtod(yytext, nullptr)); return ingot::Parser::token::FLT;
-{intvar}    yylval->emplace<char>(yytext[0]); return ingot::Parser::token::INTVAR;
-{fltvar}    yylval->emplace<char>(yytext[0]); return ingot::Parser::token::FLTVAR;
-"+"         return ingot::Parser::token::PLUS;
-"-"         return ingot::Parser::token::MINUS;
-"*"         return ingot::Parser::token::MULTIPLY;
-"/"         return ingot::Parser::token::DIVIDE;
-"%"         return ingot::Parser::token::MODULO;
-"!"         return ingot::Parser::token::FACTORIAL;
-"^"         return ingot::Parser::token::EXPONENT;
-"("         return ingot::Parser::token::LPAREN;
-")"         return ingot::Parser::token::RPAREN;
-"="         return ingot::Parser::token::ASSIGN;
-\n          return ingot::Parser::token::EOL;
-<<EOF>>     return ingot::Parser::token::YYEOF;
-.           /* no action on unmatched input */
-
-%%
-/*
-int main() {
-    yyscan_t scanner;
-    yylex_init(&scanner);
-    ingot::Parser parser{ scanner };
-    std::cout.precision(10);
-    parser.parse();
-    yylex_destroy(scanner);
-}
 */
+
+integer         ([[:digit:]]+)
+
+ident           ([a-zA-Z]+[a-zA-Z0-9]*)
+/*float           (({frac}{exp_opt})|({dseq}{exp}))*/
+
+%%
+
+{integer}       yylval->emplace<int64_t>(strtoll(YYText(), nullptr, 10)); return Parser::token::INTEGER;
+{ident}         yylval->emplace<std::string>(YYText()); return Parser::token::IDENT;
+"+"             return Parser::token::PLUS;
+"-"             return Parser::token::MINUS;
+"*"             return Parser::token::MULTIPLY;
+"/"             return Parser::token::DIVIDE;
+"%"             return Parser::token::MODULO;
+"("             return Parser::token::LPAREN;
+")"             return Parser::token::RPAREN;
+"="             return Parser::token::ASSIGN;
+\n              return Parser::token::EOL;
+<<EOF>>         return Parser::token::YYEOF;
+.               /* no action on unmatched input */
+
+%%
+
+int yyFlexLexer::yylex() {
+    throw std::runtime_error("Bad call to yyFlexLexer::yylex()");
+}

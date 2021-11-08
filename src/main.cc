@@ -1,13 +1,11 @@
 
 #include <iostream>
-#include <Scanner.hh>
-#include <Parser.hh>
+#include <FlexLexer.h>
+#include "Scanner.hh"
 
 int main() {
-    yyscan_t scanner;
-    yylex_init(&scanner);
-    ingot::Parser parser{ scanner };
+    ingot::Scanner scanner{ std::cin, std::cerr };
+    ingot::Parser parser{ &scanner };
     std::cout.precision(10);
     parser.parse();
-    yylex_destroy(scanner);
 }

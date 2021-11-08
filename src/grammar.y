@@ -1,8 +1,10 @@
 %{
 #include <iostream>
 #include <string>
-#include <cmath>
-#include <Scanner.hh>
+#include <ast/Expression.hh>
+#include <ast/FunctionDefinition.hh>
+
+
 %}
  
 %require "3.7.4"
@@ -13,83 +15,64 @@
 %define api.parser.class {Parser}
 %define api.namespace {ingot}
 %define api.value.type variant
-%param {yyscan_t scanner}
+%parse-param {Scanner* scanner}
  
-%code provides
+%code requires
 {
-    #define YY_DECL \
-        int yylex(ingot::Parser::semantic_type *yylval, yyscan_t yyscanner)
-    YY_DECL;
-}
-
-%token              EOL LPAREN RPAREN
-%token <long long>  INT
-%token <double>     FLT
-%token <char>       INTVAR FLTVAR
- 
-%nterm <long long>  iexp
-%nterm <double>     fexp
- 
-%nonassoc           ASSIGN
-%left               PLUS MINUS
-%left               MULTIPLY DIVIDE MODULO
-%precedence         UMINUS
-%precedence         FACTORIAL
-%right              EXPONENT
-
-%code
-{
+    #include <ast/Expression.hh>
+    #include <ast/FunctionDefinition.hh>
+    
     namespace ingot {
-        long long ivars['Z' - 'A' + 1];
-        double fvars['z' - 'a' + 1];
-     
-        long long factorial(long long n) {
-            if (n < 2) {
-                return 1;
-            }
-            else {
-                return n * factorial(n - 1);
-            }
-        }
-    } // namespace ingot
-} // %code
+        class Scanner;
+    }
+    
+} // %code requires
+ 
+%code
+{   
+    #include <FlexLexer.h>
+    #include <Scanner.hh>
+    #define yylex(x) scanner->lex(x)
+}
+ 
+%token                      EOL LPAREN RPAREN
+%token <int64_t>            INTEGER
+//%token <double>           FLOAT
+%token <std::string>        STRING
+%token <std::string>        IDENT
+%token                      ASSIGN
+
+%nterm <ast::FunctionDefinition>    fundef
+%nterm <ast::Expression>            expr
+
+%left                       PLUS MINUS
+%left                       MULTIPLY DIVIDE MODULO
+%precedence                 UMINUS
  
 %%
- 
+
 lines   : %empty
         | lines line
         ;
  
 line    : EOL                       { std::cerr << "Read an empty line.\n"; }
-        | iexp EOL                  { std::cout << $1 << '\n'; }
-        | fexp EOL                  { std::cout << $1 << '\n'; }
-        | INTVAR ASSIGN iexp EOL    { ivars[$1 - 'A'] = $3; }
-        | FLTVAR ASSIGN fexp EOL    { fvars[$1 - 'a'] = $3; }
+        | fundef EOL                { std::cout << $1 << "\n"; }
         | error EOL                 { yyerrok; }
         ;
  
-iexp    : INT                       { $$ = $1; }
-        | iexp PLUS iexp            { $$ = $1 + $3; }
-        | iexp MINUS iexp           { $$ = $1 - $3; }
-        | iexp MULTIPLY iexp        { $$ = $1 * $3; }
-        | iexp DIVIDE iexp          { $$ = $1 / $3; }
-        | iexp MODULO iexp          { $$ = $1 % $3; }
-        | MINUS iexp %prec UMINUS   { $$ = -$2; }
-        | iexp FACTORIAL            { $$ = factorial($1); }
-        | LPAREN iexp RPAREN        { $$ = $2; }
-        | INTVAR                    { $$ = ivars[$1 - 'A']; }
+fundef  : IDENT ASSIGN expr         { $$ = ast::FunctionDefinition{ast::FunctionPrototype{$1}, $3}; }
+
+expr    : INTEGER                   { $$ = ast::Integer($1); }
+        //| FLOAT                     { $$ = $1; }
+        | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), '+'); }
+        | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), '-'); }
+        | expr MULTIPLY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), '*'); }
+        | expr DIVIDE expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), '/'); }
+        | expr MODULO expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), '%'); }
+        | MINUS expr %prec UMINUS   { $$ = ast::Operator(std::make_unique<ast::Expression>(ast::Integer(0)), std::make_unique<ast::Expression>($2), '-');; }
+        | LPAREN expr RPAREN        { $$ = $2; }
         ;
- 
-fexp    : FLT                       { $$ = $1; }
-        | fexp PLUS fexp            { $$ = $1 + $3; }
-        | fexp MINUS fexp           { $$ = $1 - $3; }
-        | fexp MULTIPLY fexp        { $$ = $1 * $3; }
-        | fexp DIVIDE fexp          { $$ = $1 / $3; }
-        | fexp EXPONENT fexp        { $$ = pow($1, $3); }
-        | MINUS fexp %prec UMINUS   { $$ = -$2; }
-        | LPAREN fexp RPAREN        { $$ = $2; }
-        | FLTVAR                    { $$ = fvars[$1 - 'a']; }
-        ;
+
  
 %%
  
