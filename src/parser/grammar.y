@@ -21,7 +21,7 @@
 {
     #include <ast/Expression.hh>
     #include <ast/FunctionDefinition.hh>
-    
+
     namespace ingot {
         class Scanner;
     }
@@ -31,7 +31,7 @@
 %code
 {   
     #include <FlexLexer.h>
-    #include <Scanner.hh>
+    #include <parser/Scanner.hh>
     #define yylex(x) scanner->lex(x)
 }
  

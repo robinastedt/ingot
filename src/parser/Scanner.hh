@@ -1,4 +1,4 @@
-#include <Parser.hh>
+#include <parser/Parser.hh>
 
 namespace ingot { // note: depends upon FlexLexer.h
  

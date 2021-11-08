@@ -1,6 +1,6 @@
 %{
-#include "Parser.hh"
-#include "Scanner.hh"
+#include <parser/Parser.hh>
+#include <parser/Scanner.hh>
 
 #define YY_DECL int ingot::Scanner::lex(ingot::Parser::semantic_type *yylval)
 %}
