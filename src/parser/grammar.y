@@ -1,5 +1,6 @@
 %{
 #include <iostream>
+#include <parser/SyntaxError.hh>
 %}
  
 %require "3.7.4"
@@ -8,7 +9,7 @@
 %output "Parser.cc"
  
 %define api.parser.class {Parser}
-%define api.namespace {ingot}
+%define api.namespace {ingot::parser}
 %define api.value.type variant
 %parse-param {Scanner* scanner} {ast::AST& outputAST}
  
@@ -19,7 +20,7 @@
     #include <ast/FunctionDefinition.hh>
     #include <string>
 
-    namespace ingot {
+    namespace ingot::parser {
         class Scanner;
     }
     
@@ -49,6 +50,7 @@
 %%
 module  : %empty
         | module fundef             { outputAST.addDefinition($2); }
+        | module error '\n'         { yyerrok; }
         ;
 
 fundef  : IDENT ASSIGN expr         { $$ = ast::FunctionDefinition{ast::FunctionPrototype{$1}, $3}; }
@@ -67,6 +69,8 @@ expr    : INTEGER                   { $$ = ast::Integer($1); }
  
 %%
  
-void ingot::Parser::error(const std::string& msg) {
-    std::cerr << msg << '\n';
+void ingot::parser::Parser::error(const std::string& msg) {
+    const int lineno = scanner->lineno();
+    const int colno = scanner->getColumn() + 1 - scanner->YYLeng();
+    throw SyntaxError(msg + ": unrecognized or unexpected token \"" + scanner->YYText() + "\"", lineno, colno);
 }

@@ -5,6 +5,7 @@ find_package(BISON REQUIRED)
 add_library(ingotparser STATIC
     Scanner.cc
     Parser.cc
+    SyntaxError.cc
 )
 
 add_custom_command(

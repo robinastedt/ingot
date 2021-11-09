@@ -8,10 +8,14 @@ c  =	1 + 2 *3
 # returns 5
 complicated = 1 + 2 * 3 + -4 / (10 % 8)
 
-function=1secondfunction=2
+function=1+1+1+1secondfunction=2+2+2+2
+
+#error=5*4+garbage
+error2=(2
 
 # TODO: Handle conflicts when prototypes match
 conflict=1
+
 conflict=2
 
 # Comment at the end of the file

@@ -2,16 +2,23 @@
 #include <iostream>
 #include <FlexLexer.h>
 #include <parser/Scanner.hh>
+#include <parser/SyntaxError.hh>
 #include <ast/AST.hh>
 #include <semantics/SemanticTree.hh>
 #include <codegen/Generator.hh>
 
 int main() {
-    ingot::Scanner scanner{ std::cin, std::cerr };
+    ingot::parser::Scanner scanner{ std::cin, std::cerr };
     ingot::ast::AST ast;
-    ingot::Parser parser{ &scanner, ast };
+    ingot::parser::Parser parser{ &scanner, ast };
     std::cout.precision(10);
-    parser.parse();
+    try {
+        parser.parse();
+    } catch (ingot::parser::SyntaxError err) {
+        std::cerr << "example.ingot:" << err.lineno() << ":" << err.colno() << ": " << err.what() << std::endl;
+        return 1;
+    }
+    
     std::cout << ast << std::endl
               << "++++++++++++++++++++++++" << std::endl;
     ingot::codegen::Generator generator;

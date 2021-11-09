@@ -2,10 +2,11 @@
 #include <parser/Parser.hh>
 #include <parser/Scanner.hh>
 
-#define YY_DECL int ingot::Scanner::lex(ingot::Parser::semantic_type *yylval)
+#define YY_DECL int ingot::parser::Scanner::lex(ingot::parser::Parser::semantic_type *yylval)
+#define YY_USER_ACTION setColumn(getColumn() + YYLeng());
 %}
 
-%option c++ interactive noyywrap noyylineno nodefault outfile="Scanner.cc"
+%option c++ interactive noyywrap yylineno nodefault outfile="Scanner.cc"
 
 /*
 dseq            ([[:digit:]]+)
@@ -20,17 +21,19 @@ integer         ([[:digit:]]+)
 ident           ([a-zA-Z]+[a-zA-Z0-9]*)
 /*float           (({frac}{exp_opt})|({dseq}{exp}))*/
 
-whitespace      ([ \t\n]+)
+whitespace      ([ \t]+)
+linebreak       (\n+)
 
 %x COMMENT
 
 %%
 
 "#"                 { BEGIN(COMMENT); }
-<COMMENT>"\n"       { BEGIN(INITIAL); }
+<COMMENT>"\n"       { BEGIN(INITIAL); setColumn(0); }
 <COMMENT><<EOF>>    { BEGIN(INITIAL); return Parser::token::YYEOF; }
 <COMMENT>.          { }
 {whitespace}        { }
+{linebreak}         { setColumn(0); }
 {integer}           { yylval->emplace<int64_t>(strtoll(YYText(), nullptr, 10)); return Parser::token::INTEGER; }
 {ident}             { yylval->emplace<std::string>(YYText()); return Parser::token::IDENT; }
 "+"                 { return Parser::token::PLUS; }
