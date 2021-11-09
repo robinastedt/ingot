@@ -39,7 +39,8 @@ namespace ingot::codegen
         std::vector<UserFunction> userFunctions;
         for (const ast::FunctionDefinition& definition : semTree) {
             llvm::FunctionType* prototype = llvm::FunctionType::get(i64, false); // TODO: Handle arguments
-            llvm::Function* function = llvm::Function::Create(prototype, llvm::Function::InternalLinkage, definition.getPrototype().getName(), mainModule.get());
+            std::string name = userFunctionPrefix + definition.getPrototype().getName();
+            llvm::Function* function = llvm::Function::Create(prototype, llvm::Function::InternalLinkage, name, mainModule.get());
             userFunctions.emplace_back(definition, function);
         }
 

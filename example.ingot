@@ -10,4 +10,8 @@ complicated = 1 + 2 * 3 + -4 / (10 % 8)
 
 function=1secondfunction=2
 
+# TODO: Handle conflicts when prototypes match
+conflict=1
+conflict=2
+
 # Comment at the end of the file

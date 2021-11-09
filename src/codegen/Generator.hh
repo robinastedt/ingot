@@ -13,6 +13,8 @@ namespace ingot::codegen
     class Generator {
         llvm::LLVMContext m_context;
 
+        const std::string userFunctionPrefix = "ingot_user_";
+
     public:
         Generator();
         void run(const semantics::SemanticTree& semTree);
