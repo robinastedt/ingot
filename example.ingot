@@ -4,4 +4,10 @@ b=1+2  # This is a comment
 
 c  =	1 + 2 *3
 
+
+# returns 5
+complicated = 1 + 2 * 3 + -4 / (10 % 8)
+
+function=1secondfunction=2
+
 # Comment at the end of the file

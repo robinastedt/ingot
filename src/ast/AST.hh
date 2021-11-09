@@ -10,11 +10,11 @@ namespace ingot::ast
 
         friend std::ostream& operator<<(std::ostream& str, const AST& expr);
     public:
-        AST();
-        void addDefinition(FunctionDefinition definition);
-
         using const_iterator = std::vector<FunctionDefinition>::const_iterator;
         using iterator = std::vector<FunctionDefinition>::iterator;
+
+        AST();
+        void addDefinition(FunctionDefinition definition);
 
         const_iterator begin() const;
         const_iterator end() const;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <iostream>
 
@@ -10,6 +12,7 @@ namespace ingot::ast
     
     public:
         Integer(int64_t value);
+        int64_t getValue() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Integer& integer);

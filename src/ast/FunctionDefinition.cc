@@ -11,6 +11,11 @@ namespace ingot::ast
         return m_prototype;
     }
 
+    const Expression&
+    FunctionDefinition::getExpression() const {
+        return m_expression;
+    }
+
     std::ostream& operator<<(std::ostream& str, const FunctionDefinition& functionDefinition) {
         return str << functionDefinition.m_prototype << "=" << functionDefinition.m_expression;
     }

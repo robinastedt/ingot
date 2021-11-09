@@ -12,13 +12,13 @@ int main() {
     ingot::Parser parser{ &scanner, ast };
     std::cout.precision(10);
     parser.parse();
-    std::cout << ast 
+    std::cout << ast << std::endl
               << "++++++++++++++++++++++++" << std::endl;
     ingot::codegen::Generator generator;
-    std::cout << "++++++++++++++++++++++++" << std::endl;
     ingot::semantics::SemanticTree semTree{ast};
     if (!semTree.verify(std::cerr)) {
         return 1;
     }
+
     generator.run(semTree);
 }

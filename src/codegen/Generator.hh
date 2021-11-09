@@ -15,6 +15,6 @@ namespace ingot::codegen
 
     public:
         Generator();
-        void run(const semantics::SemanticTree& tree);
+        void run(const semantics::SemanticTree& semTree);
     };
 } // namespace ingot::codegen
