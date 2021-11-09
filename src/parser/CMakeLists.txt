@@ -1,4 +1,7 @@
 
+find_package(FLEX REQUIRED)
+find_package(BISON REQUIRED)
+
 add_library(ingotparser STATIC
     Scanner.cc
     Parser.cc

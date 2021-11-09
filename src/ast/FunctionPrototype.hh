@@ -12,6 +12,10 @@ namespace ingot::ast
     public:
         FunctionPrototype() = default;
         FunctionPrototype(std::string name);
+
+        const std::string& getName() const;
+
+        bool operator<(const FunctionPrototype& rhs) const;
     };
 
     std::ostream& operator<<(std::ostream& str, const FunctionPrototype& functionPrototype);

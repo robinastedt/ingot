@@ -14,6 +14,7 @@ namespace ingot::ast
     public:
         FunctionDefinition() = default;
         FunctionDefinition(FunctionPrototype prototype, Expression expression);
+        const FunctionPrototype& getPrototype() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const FunctionDefinition& functionDefinition);
