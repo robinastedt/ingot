@@ -57,6 +57,7 @@ fundef  : IDENT ASSIGN expr         { $$ = ast::FunctionDefinition{ast::Function
 
 expr    : INTEGER                   { $$ = ast::Integer($1); }
         //| FLOAT                     { $$ = $1; }
+        | IDENT                     { $$ = ast::FunctionCall($1); }
         | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Add); }
         | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Sub); }
         | expr MULTIPLY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Mul); }

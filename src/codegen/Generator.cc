@@ -29,46 +29,57 @@ namespace ingot::codegen
         // printf declaration
         llvm::FunctionType* printfPrototype = llvm::FunctionType::get(i8p, true);
         llvm::Function* printfFunc = llvm::Function::Create(printfPrototype, llvm::Function::ExternalLinkage, "printf", mainModule.get());
-
-        // Main declaration
-        llvm::FunctionType* mainPrototype = llvm::FunctionType::get(i32, false);
-        llvm::Function* mainFunc = llvm::Function::Create(mainPrototype, llvm::Function::ExternalLinkage, "main", mainModule.get());
-        
         // User declarations
-        using UserFunction = std::pair<const ast::FunctionDefinition&, llvm::Function*>;
-        std::vector<UserFunction> userFunctions;
+        llvm::Function* userMain = nullptr;
+        std::map<const ast::FunctionDefinition*, llvm::Function*> userFunctions;
         for (const ast::FunctionDefinition& definition : semTree) {
             llvm::FunctionType* prototype = llvm::FunctionType::get(i64, false); // TODO: Handle arguments
-            std::string name = userFunctionPrefix + definition.getPrototype().getName();
+            std::string userName = definition.getPrototype().getName();
+            
+            std::string name = userFunctionPrefix + userName;
             llvm::Function* function = llvm::Function::Create(prototype, llvm::Function::InternalLinkage, name, mainModule.get());
-            userFunctions.emplace_back(definition, function);
+            userFunctions[&definition] = function;
+            if (userName == "main") {
+                userMain = function;
+            }
         }
 
-        for (const auto&[definition, function] : userFunctions) {
-            llvm::BasicBlock* body = llvm::BasicBlock::Create(m_context, "body", function);
+        for (const auto&[definitionPtr, function] : userFunctions) {
+            llvm::BasicBlock* body = llvm::BasicBlock::Create(m_context, "entry", function);
             builder.SetInsertPoint(body);
-            CodegenVisitor visitor{builder};
-            llvm::Value* value = definition.getExpression().reduce(visitor);
+            CodegenVisitor visitor{builder, semTree, userFunctions};
+            llvm::Value* value = definitionPtr->getExpression().reduce(visitor);
             builder.CreateRet(value);
         }
 
-        // Main defintion
-        llvm::BasicBlock *mainBody = llvm::BasicBlock::Create(m_context, "body", mainFunc);
-        builder.SetInsertPoint(mainBody);
-        llvm::Constant* helloWorldFormatStr = builder.CreateGlobalStringPtr("%s");
-        llvm::Constant* helloWorldLiteral = builder.CreateGlobalStringPtr("Hello world!\n");
-        builder.CreateCall(printfFunc, {helloWorldFormatStr, helloWorldLiteral});
-        builder.CreateRet(exitSuccess);
+        if (userMain) {
+            // Main declaration
+            llvm::FunctionType* mainPrototype = llvm::FunctionType::get(i32, false);
+            llvm::Function* mainFunc = llvm::Function::Create(mainPrototype, llvm::Function::ExternalLinkage, "main", mainModule.get());
+
+            // Main defintion
+            llvm::BasicBlock *mainBody = llvm::BasicBlock::Create(m_context, "entry", mainFunc);
+            builder.SetInsertPoint(mainBody);
+            llvm::Constant* helloWorldFormatStr = builder.CreateGlobalStringPtr("%d");
+            //llvm::Constant* helloWorldLiteral = builder.CreateGlobalStringPtr("Hello world!\n");
+            llvm::CallInst* userMainCall = builder.CreateCall(userMain);
+            builder.CreateCall(printfFunc, {helloWorldFormatStr, userMainCall});
+            builder.CreateRet(exitSuccess);
+        }
+        
 
         {
             // Print and execute for now... need to figure out what to do with result.
             mainModule->print(llvm::outs(), nullptr);
-            llvm::Module* mainModulePtr = mainModule.get(); // Save address so that we can reclaim the module
-            llvm::ExecutionEngine *executionEngine = llvm::EngineBuilder(std::move(mainModule)).setEngineKind(llvm::EngineKind::Interpreter).create();
-            llvm::Function *main = executionEngine->FindFunctionNamed(llvm::StringRef("main"));
-            auto result = executionEngine->runFunction(main, {});
-            executionEngine->removeModule(mainModulePtr);
-            mainModule.reset(mainModulePtr);
+            if (userMain) {
+                llvm::Module* mainModulePtr = mainModule.get(); // Save address so that we can reclaim the module
+                llvm::ExecutionEngine *executionEngine = llvm::EngineBuilder(std::move(mainModule)).setEngineKind(llvm::EngineKind::Interpreter).create();
+                llvm::Function *main = executionEngine->FindFunctionNamed(llvm::StringRef("main"));
+                auto result = executionEngine->runFunction(main, {});
+                executionEngine->removeModule(mainModulePtr);
+                mainModule.reset(mainModulePtr);
+            }
+            
         }
         
     }

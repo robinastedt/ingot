@@ -5,9 +5,15 @@
 
 namespace ingot::codegen
 {
-    CodegenVisitor::CodegenVisitor(llvm::IRBuilder<>& builder)
+    CodegenVisitor::CodegenVisitor(
+        llvm::IRBuilder<>& builder,
+        const semantics::SemanticTree& semanticTree,
+        const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
+    )
     : m_builder(builder)
-    , m_i64(m_builder.getInt64Ty()) {}
+    , m_i64(m_builder.getInt64Ty())
+    , m_semanticTree(semanticTree)
+    , m_functionMap(functionMap) {}
 
     llvm::Value*
     CodegenVisitor::operator()(const ast::Integer& i) {
@@ -28,6 +34,21 @@ namespace ingot::codegen
             case ast::Operator::Type::Div: return m_builder.CreateSDiv(lhsResult, rhsResult, "tmpdiv");
             case ast::Operator::Type::Mod: return m_builder.CreateSRem(lhsResult, rhsResult, "tmprem");
         } 
-        __builtin_unreachable();
+        throw std::runtime_error(std::string("Internal error: Unhandled Operator::Type: ") + (char)(op.getType()));
+    }
+
+    llvm::Value*
+    CodegenVisitor::operator()(const ast::FunctionCall& funcCall) {
+        auto defIt = m_semanticTree.findDefinition(funcCall.getPrototype());
+        if (defIt == m_semanticTree.end()) {
+            throw std::runtime_error("Internal error: Could not find function definition in semantic tree: " + funcCall.getPrototype().getName());
+        }
+        const ast::FunctionDefinition& def = *defIt;
+        auto funcIt = m_functionMap.find(&def);
+        if (funcIt == m_functionMap.end()) {
+            throw std::runtime_error("Internal error: llvm::Function* not found for function: " + funcCall.getPrototype().getName());
+        }
+        llvm::Function* func = funcIt->second;
+        return m_builder.CreateCall(func);
     }
 } // namespace ingot::codegen

@@ -28,8 +28,6 @@ int main(int argc, char** argv) {
         return 1;
     }
     
-    std::cout << ast << std::endl
-              << "++++++++++++++++++++++++" << std::endl;
     ingot::codegen::Generator generator;
     ingot::semantics::SemanticTree semTree{ast};
     if (!semTree.verify(std::cerr)) {
