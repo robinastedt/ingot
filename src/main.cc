@@ -20,13 +20,15 @@ int main(int argc, char** argv) {
     ingot::parser::Scanner scanner{ inputStream, std::cerr };
     ingot::ast::AST ast;
     ingot::parser::Parser parser{ &scanner, ast };
-    std::cout.precision(10);
     try {
         parser.parse();
     } catch (ingot::parser::SyntaxError err) {
         std::cerr << filename << ":" << err.lineno() << ":" << err.colno() << ": " << err.what() << std::endl;
         return 1;
     }
+
+    std::cout << ast << std::endl
+              << "++++++++++++++++++++++" << std::endl;
     
     ingot::codegen::Generator generator;
     ingot::semantics::SemanticTree semTree{ast};

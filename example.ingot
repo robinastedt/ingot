@@ -1,25 +1,4 @@
-a=5*3
-b=1+2  # This is a comment
 
+function = (int) -> int : (x) -> 5
 
-c  =	1 + 2 *3
-
-d = a + b * c * 4
-
-main = d
-
-
-# returns 5
-complicated = 1 + 2 * 3 + -4 / (10 % 8)
-
-function=1+1+1+1secondfunction=2+2+2+2
-
-#error=5*4+garbage
-#error2=(2
-
-# TODO: Handle conflicts when prototypes match
-conflict=1
-
-conflict=2
-
-# Comment at the end of the file
+main = () -> int : () -> function(5)

@@ -39,14 +39,14 @@ namespace ingot::codegen
 
     llvm::Value*
     CodegenVisitor::operator()(const ast::FunctionCall& funcCall) {
-        auto defIt = m_semanticTree.findDefinition(funcCall.getPrototype());
+        auto defIt = m_semanticTree.findDefinition(funcCall.getName());
         if (defIt == m_semanticTree.end()) {
-            throw std::runtime_error("Internal error: Could not find function definition in semantic tree: " + funcCall.getPrototype().getName());
+            throw std::runtime_error("Internal error: Could not find function definition in semantic tree: " + funcCall.getName());
         }
         const ast::FunctionDefinition& def = *defIt;
         auto funcIt = m_functionMap.find(&def);
         if (funcIt == m_functionMap.end()) {
-            throw std::runtime_error("Internal error: llvm::Function* not found for function: " + funcCall.getPrototype().getName());
+            throw std::runtime_error("Internal error: llvm::Function* not found for function: " + funcCall.getName());
         }
         llvm::Function* func = funcIt->second;
         return m_builder.CreateCall(func);

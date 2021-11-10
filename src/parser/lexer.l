@@ -44,6 +44,9 @@ linebreak       (\n+)
 "("                 { return Parser::token::LPAREN; }
 ")"                 { return Parser::token::RPAREN; }
 "="                 { return Parser::token::ASSIGN; }
+":"                 { return Parser::token::COLON; }
+"->"                { return Parser::token::RARROW; }
+","                 { return Parser::token::COMMA; }
 <<EOF>>             { return Parser::token::YYEOF; }
 
 %%

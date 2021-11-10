@@ -34,7 +34,7 @@ namespace ingot::codegen
         std::map<const ast::FunctionDefinition*, llvm::Function*> userFunctions;
         for (const ast::FunctionDefinition& definition : semTree) {
             llvm::FunctionType* prototype = llvm::FunctionType::get(i64, false); // TODO: Handle arguments
-            std::string userName = definition.getPrototype().getName();
+            std::string userName = definition.getName();
             
             std::string name = userFunctionPrefix + userName;
             llvm::Function* function = llvm::Function::Create(prototype, llvm::Function::InternalLinkage, name, mainModule.get());
@@ -48,7 +48,7 @@ namespace ingot::codegen
             llvm::BasicBlock* body = llvm::BasicBlock::Create(m_context, "entry", function);
             builder.SetInsertPoint(body);
             CodegenVisitor visitor{builder, semTree, userFunctions};
-            llvm::Value* value = definitionPtr->getExpression().reduce(visitor);
+            llvm::Value* value = definitionPtr->getFunction().getExpression().reduce(visitor);
             builder.CreateRet(value);
         }
 
@@ -60,10 +60,10 @@ namespace ingot::codegen
             // Main defintion
             llvm::BasicBlock *mainBody = llvm::BasicBlock::Create(m_context, "entry", mainFunc);
             builder.SetInsertPoint(mainBody);
-            llvm::Constant* helloWorldFormatStr = builder.CreateGlobalStringPtr("%d");
+            llvm::Constant* formatStr = builder.CreateGlobalStringPtr("%lli");
             //llvm::Constant* helloWorldLiteral = builder.CreateGlobalStringPtr("Hello world!\n");
             llvm::CallInst* userMainCall = builder.CreateCall(userMain);
-            builder.CreateCall(printfFunc, {helloWorldFormatStr, userMainCall});
+            builder.CreateCall(printfFunc, {formatStr, userMainCall});
             builder.CreateRet(exitSuccess);
         }
         

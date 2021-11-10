@@ -2,26 +2,26 @@
 
 namespace ingot::ast
 {
-    FunctionDefinition::FunctionDefinition(FunctionPrototype prototype, Expression expression)
-        : m_prototype(std::move(prototype))
-        , m_expression(std::move(expression)) {}
+    FunctionDefinition::FunctionDefinition(std::string name, Function function)
+        : m_name(std::move(name))
+        , m_function(std::move(function)) {}
 
-    const FunctionPrototype&
-    FunctionDefinition::getPrototype() const {
-        return m_prototype;
+    const std::string&
+    FunctionDefinition::getName() const {
+        return m_name;
     }
 
-    const Expression&
-    FunctionDefinition::getExpression() const {
-        return m_expression;
+    const Function&
+    FunctionDefinition::getFunction() const {
+        return m_function;
     }
 
     bool
     FunctionDefinition::operator<(const FunctionDefinition& rhs) const {
-        return m_prototype < rhs.m_prototype;
+        return m_name < rhs.m_name;
     }
 
     std::ostream& operator<<(std::ostream& str, const FunctionDefinition& functionDefinition) {
-        return str << functionDefinition.m_prototype << "=" << functionDefinition.m_expression;
+        return str << functionDefinition.m_name << "=" << functionDefinition.m_function;
     }
 } // namespace ingot::ast

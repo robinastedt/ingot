@@ -7,7 +7,7 @@ namespace ingot::semantics
 {
     class SemanticTree {
         const ast::AST& m_ast;
-        std::map<ast::FunctionPrototype, const ast::FunctionDefinition&> m_definitionMap;
+        std::map<std::string, const ast::FunctionDefinition&> m_definitionMap;
 
     public:
         SemanticTree(const ast::AST& ast);
@@ -19,6 +19,6 @@ namespace ingot::semantics
         const_iterator begin() const;
         const_iterator end() const;
 
-        const_iterator findDefinition(const ast::FunctionPrototype& prototype) const;
+        const_iterator findDefinition(const std::string& name) const;
     };
 } // namespace ingot::semantics

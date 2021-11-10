@@ -18,6 +18,7 @@
     #include <ast/AST.hh>
     #include <ast/Expression.hh>
     #include <ast/FunctionDefinition.hh>
+    #include <ast/Function.hh>
     #include <string>
 
     namespace ingot::parser {
@@ -39,9 +40,19 @@
 %token <std::string>        STRING
 %token <std::string>        IDENT
 %token                      ASSIGN
+%token                      COLON
+%token                      RARROW
+%token                      COMMA
 
-%nterm <ast::FunctionDefinition>    fundef
-%nterm <ast::Expression>            expr
+
+%nterm <ast::FunctionDefinition>        fundef
+%nterm <ast::Expression>                expr
+%nterm <std::vector<ast::Expression>>   exprs
+%nterm <ast::Function>                  fun
+%nterm <std::vector<std::string>>       args
+%nterm <ast::FunctionType>              funtype
+%nterm <std::vector<ast::Type>>         argtypes
+%nterm <ast::Type>                      type
 
 %left                       PLUS MINUS
 %left                       MULTIPLY DIVIDE MODULO
@@ -53,11 +64,27 @@ module  : %empty
         | module error '\n'         { yyerrok; }
         ;
 
-fundef  : IDENT ASSIGN expr         { $$ = ast::FunctionDefinition{ast::FunctionPrototype{$1}, $3}; }
+fundef      : IDENT ASSIGN fun         { $$ = ast::FunctionDefinition{$1, $3}; }
+
+fun         : funtype COLON LPAREN args RPAREN RARROW expr  { $$ = ast::Function($1, $4, $7); }
+
+funtype     : LPAREN argtypes RPAREN RARROW type  { $$ = ast::FunctionType($5, $2); }
+
+args            : %empty                    { $$ = std::vector<std::string>(); }
+                | IDENT                     { $$ = {$1}; }
+                | args COMMA IDENT          { std::vector<std::string> copy = $1; copy.push_back($3); $$ = std::move(copy); }
+
+argtypes        : %empty                    { $$ = std::vector<ast::Type>(); }
+                | type                      { $$ = {$1}; }
+                | argtypes COMMA type       { std::vector<ast::Type> copy = $1; copy.push_back($3); $$ = std::move(copy); }
+
+exprs           : %empty                    { $$ = std::vector<ast::Expression>(); }
+                | expr                      { $$ = {$1}; }
+                | exprs COMMA expr          { std::vector<ast::Expression> copy = $1; copy.push_back($3); $$ = std::move(copy); }
 
 expr    : INTEGER                   { $$ = ast::Integer($1); }
         //| FLOAT                     { $$ = $1; }
-        | IDENT                     { $$ = ast::FunctionCall($1); }
+        | IDENT LPAREN exprs RPAREN  { $$ = ast::FunctionCall($1, $3); }
         | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Add); }
         | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Sub); }
         | expr MULTIPLY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Mul); }
@@ -67,7 +94,8 @@ expr    : INTEGER                   { $$ = ast::Integer($1); }
         | LPAREN expr RPAREN        { $$ = $2; }
         ;
 
- 
+
+type    : IDENT                 { $$ = ast::Type($1); }
 %%
  
 void ingot::parser::Parser::error(const std::string& msg) {

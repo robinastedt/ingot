@@ -4,12 +4,12 @@ namespace ingot::semantics
 {
     namespace
     {
-        using DefMap = std::map<ingot::ast::FunctionPrototype, const ingot::ast::FunctionDefinition&>;
+        using DefMap = std::map<std::string, const ingot::ast::FunctionDefinition&>;
         DefMap
         buildDefinitionMap(const ingot::ast::AST& ast) {
             DefMap defMap;
             for (const ingot::ast::FunctionDefinition& def : ast) {
-                defMap.emplace(def.getPrototype(), def);
+                defMap.emplace(def.getName(), def);
             }
             return defMap;
         }
@@ -37,8 +37,8 @@ namespace ingot::semantics
     }
 
     SemanticTree::const_iterator
-    SemanticTree::findDefinition(const ast::FunctionPrototype& prototype) const {
-        auto defMapIt = m_definitionMap.find(prototype);
+    SemanticTree::findDefinition(const std::string& name) const {
+        auto defMapIt = m_definitionMap.find(name);
         return defMapIt != m_definitionMap.end() ? const_iterator{&defMapIt->second} : end();
     }
 
