@@ -9,7 +9,7 @@ namespace ingot::ast
 
     class Operator {
     public:
-        enum class Type : char {
+        enum class Variant : char {
             Add = '+',
             Sub = '-',
             Mul = '*',
@@ -19,20 +19,22 @@ namespace ingot::ast
     private:
 
         std::unique_ptr<Expression> m_lhs, m_rhs;
-        Type m_type;
+        Variant m_variant;
 
         friend std::ostream& operator<<(std::ostream& str, const Operator& expr);
         
     public:
-        Operator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs, Type type);
+        Operator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs, Variant variant);
         Operator(const Operator& other);
         Operator& operator=(const Operator& other);
 
         const Expression& getLhs() const;
+        Expression& getLhs();
         const Expression& getRhs() const;
-        Type getType() const;
+        Expression& getRhs();
+        Variant getVariant() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Operator& op);
-    std::ostream& operator<<(std::ostream& str, const Operator::Type& opType);
+    std::ostream& operator<<(std::ostream& str, const Operator::Variant& variant);
 } // namespace ingot::ast

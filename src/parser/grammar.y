@@ -19,6 +19,7 @@
     #include <ast/Expression.hh>
     #include <ast/FunctionDefinition.hh>
     #include <ast/Function.hh>
+    #include <ast/String.hh>
     #include <string>
 
     namespace ingot::parser {
@@ -43,6 +44,7 @@
 %token                      COLON
 %token                      RARROW
 %token                      COMMA
+%token <std::string>        ERROR
 
 
 %nterm <ast::FunctionDefinition>        fundef
@@ -83,17 +85,16 @@ exprs           : %empty                    { $$ = std::vector<ast::Expression>(
                 | exprs COMMA expr          { std::vector<ast::Expression> copy = $1; copy.push_back($3); $$ = std::move(copy); }
 
 expr    : INTEGER                   { $$ = ast::Integer($1); }
-        //| FLOAT                     { $$ = $1; }
+        | STRING                    { $$ = ast::String($1); }
         | IDENT LPAREN exprs RPAREN  { $$ = ast::FunctionCall($1, $3); }
-        | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Add); }
-        | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Sub); }
-        | expr MULTIPLY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Mul); }
-        | expr DIVIDE expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Div); }
-        | expr MODULO expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Type::Mod); }
-        | MINUS expr %prec UMINUS   { $$ = ast::Operator(std::make_unique<ast::Expression>(ast::Integer(0)), std::make_unique<ast::Expression>($2), ast::Operator::Type::Sub);; }
+        | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Add); }
+        | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Sub); }
+        | expr MULTIPLY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Mul); }
+        | expr DIVIDE expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Div); }
+        | expr MODULO expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Mod); }
+        | MINUS expr %prec UMINUS   { $$ = ast::Operator(std::make_unique<ast::Expression>(ast::Integer(0)), std::make_unique<ast::Expression>($2), ast::Operator::Variant::Sub);; }
         | LPAREN expr RPAREN        { $$ = $2; }
         ;
-
 
 type    : IDENT                 { $$ = ast::Type($1); }
 %%
@@ -101,5 +102,5 @@ type    : IDENT                 { $$ = ast::Type($1); }
 void ingot::parser::Parser::error(const std::string& msg) {
     const int lineno = scanner->lineno();
     const int colno = scanner->getColumn() + 1 - scanner->YYLeng();
-    throw SyntaxError(msg + ": unrecognized or unexpected token \"" + scanner->YYText() + "\"", lineno, colno);
+    throw SyntaxError(msg + ": unrecognized or unexpected token '" + scanner->YYText() + "'", lineno, colno);
 }

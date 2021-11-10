@@ -23,6 +23,7 @@ ident           ([a-zA-Z]+[a-zA-Z0-9]*)
 
 whitespace      ([ \t]+)
 linebreak       (\n+)
+string         (\"(\\.|[^"\\])*\")
 
 %x COMMENT
 
@@ -36,6 +37,7 @@ linebreak       (\n+)
 {linebreak}         { setColumn(0); }
 {integer}           { yylval->emplace<int64_t>(strtoll(YYText(), nullptr, 10)); return Parser::token::INTEGER; }
 {ident}             { yylval->emplace<std::string>(YYText()); return Parser::token::IDENT; }
+{string}            { yylval->emplace<std::string>(YYText()+1, YYText()+YYLeng() - 1); return Parser::token::STRING; }
 "+"                 { return Parser::token::PLUS; }
 "-"                 { return Parser::token::MINUS; }
 "*"                 { return Parser::token::MULTIPLY; }
@@ -48,6 +50,7 @@ linebreak       (\n+)
 "->"                { return Parser::token::RARROW; }
 ","                 { return Parser::token::COMMA; }
 <<EOF>>             { return Parser::token::YYEOF; }
+.                   { yylval->emplace<std::string>(YYText()); return Parser::token::ERROR; }
 
 %%
 

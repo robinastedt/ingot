@@ -8,5 +8,6 @@ add_library(ingotast STATIC
     FunctionType.cc
     Integer.cc
     Operator.cc
+    String.cc
     Type.cc
 )

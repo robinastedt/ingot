@@ -1,6 +1,7 @@
 #include "FunctionCall.hh"
 
 #include <ast/Expression.hh>
+#include <ast/FunctionDefinition.hh>
 
 #include <iostream>
 
@@ -8,7 +9,8 @@ namespace ingot::ast
 {
     FunctionCall::FunctionCall(std::string name, std::vector<Expression> arguments)
     : m_name(std::move(name))
-    , m_arguments(std::move(arguments)) {}
+    , m_arguments(std::move(arguments))
+    , m_definition(nullptr /*To be filled in by semantic analyzer*/) {}
 
     const std::string&
     FunctionCall::getName() const {
@@ -18,6 +20,19 @@ namespace ingot::ast
     const std::vector<Expression>&
     FunctionCall::getArguments() const {
         return m_arguments;
+    }
+
+    void
+    FunctionCall::setFunctionDefinition(const FunctionDefinition& definition) {
+        m_definition = &definition;
+    }
+
+    const Type&
+    FunctionCall::getReturnType() const {
+        if (!m_definition) {
+            throw std::runtime_error("Internal error: Tried to access function definition before its been set on function call: " + m_name);
+        }
+        return m_definition->getFunction().getFunctionType().getReturnType(); // :)
     }
 
     std::ostream& operator<<(std::ostream& str, const FunctionCall& functionCall) {

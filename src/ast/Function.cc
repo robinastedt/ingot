@@ -2,14 +2,24 @@
 
 namespace ingot::ast
 {
-    Function::Function(FunctionType type, std::vector<std::string> arguments, ast::Expression expression)
+    Function::Function(FunctionType type, std::vector<std::string> arguments, Expression expression)
     : m_type(std::move(type))
     , m_arguments(std::move(arguments))
     , m_expression(std::move(expression)) {}
 
-    const ast::Expression&
+    const Expression&
     Function::getExpression() const {
         return m_expression;
+    }
+
+    Expression&
+    Function::getExpression() {
+        return m_expression;
+    }
+
+    const FunctionType&
+    Function::getFunctionType() const {
+        return m_type;
     }
 
     std::ostream& operator<<(std::ostream& str, const Function& function) {

@@ -6,6 +6,7 @@
 #include <parser/SyntaxError.hh>
 #include <ast/AST.hh>
 #include <semantics/SemanticTree.hh>
+#include <semantics/SemanticError.hh>
 #include <codegen/Generator.hh>
 
 
@@ -22,7 +23,7 @@ int main(int argc, char** argv) {
     ingot::parser::Parser parser{ &scanner, ast };
     try {
         parser.parse();
-    } catch (ingot::parser::SyntaxError err) {
+    } catch (const ingot::parser::SyntaxError& err) {
         std::cerr << filename << ":" << err.lineno() << ":" << err.colno() << ": " << err.what() << std::endl;
         return 1;
     }
@@ -30,11 +31,13 @@ int main(int argc, char** argv) {
     std::cout << ast << std::endl
               << "++++++++++++++++++++++" << std::endl;
     
-    ingot::codegen::Generator generator;
     ingot::semantics::SemanticTree semTree{ast};
-    if (!semTree.verify(std::cerr)) {
+    try {
+        semTree.resolve();
+    } catch (const ingot::semantics::SemanticError& err) {
+        std::cerr << filename << ": " << err.what() << std::endl;
         return 1;
     }
-
+    ingot::codegen::Generator generator;
     generator.run(semTree);
 }

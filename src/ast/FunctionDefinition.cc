@@ -16,6 +16,11 @@ namespace ingot::ast
         return m_function;
     }
 
+    Function&
+    FunctionDefinition::getFunction() {
+        return m_function;
+    }
+
     bool
     FunctionDefinition::operator<(const FunctionDefinition& rhs) const {
         return m_name < rhs.m_name;

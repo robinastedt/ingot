@@ -18,7 +18,9 @@ namespace ingot::ast
         Function() = default;
         Function(FunctionType type, std::vector<std::string> arguments, ast::Expression expression);
 
-        const ast::Expression& getExpression() const;
+        const Expression& getExpression() const;
+        Expression& getExpression();
+        const FunctionType& getFunctionType() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Function& function);

@@ -21,20 +21,25 @@ namespace ingot::codegen
     }
 
     llvm::Value*
+    CodegenVisitor::operator()(const ast::String& str) {
+        return nullptr; // TODO: Implement
+    }
+
+    llvm::Value*
     CodegenVisitor::operator()(const ast::Operator& op, llvm::Value* lhsResult, llvm::Value* rhsResult) {
-        switch (op.getType()) {
-            case ast::Operator::Type::Add: return m_builder.CreateAdd(lhsResult, rhsResult, "tmpadd");
-            case ast::Operator::Type::Sub: {
+        switch (op.getVariant()) {
+            case ast::Operator::Variant::Add: return m_builder.CreateAdd(lhsResult, rhsResult, "tmpadd");
+            case ast::Operator::Variant::Sub: {
                 if (std::holds_alternative<ast::Integer>(op.getLhs()) && std::get<ast::Integer>(op.getLhs()).getValue() == 0) {
                     return m_builder.CreateNeg(rhsResult, "tmpneg");
                 }
                 return m_builder.CreateSub(lhsResult, rhsResult, "tmpsub");
             }
-            case ast::Operator::Type::Mul: return m_builder.CreateMul(lhsResult, rhsResult, "tmpmul");
-            case ast::Operator::Type::Div: return m_builder.CreateSDiv(lhsResult, rhsResult, "tmpdiv");
-            case ast::Operator::Type::Mod: return m_builder.CreateSRem(lhsResult, rhsResult, "tmprem");
+            case ast::Operator::Variant::Mul: return m_builder.CreateMul(lhsResult, rhsResult, "tmpmul");
+            case ast::Operator::Variant::Div: return m_builder.CreateSDiv(lhsResult, rhsResult, "tmpdiv");
+            case ast::Operator::Variant::Mod: return m_builder.CreateSRem(lhsResult, rhsResult, "tmprem");
         } 
-        throw std::runtime_error(std::string("Internal error: Unhandled Operator::Type: ") + (char)(op.getType()));
+        throw std::runtime_error(std::string("Internal error: Unhandled Operator::Variant: ") + (char)(op.getVariant()));
     }
 
     llvm::Value*

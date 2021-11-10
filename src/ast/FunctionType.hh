@@ -14,6 +14,8 @@ namespace ingot::ast
     public:
         FunctionType() = default;
         FunctionType(ast::Type returnType, std::vector<ast::Type> argumentTypes);
+
+        const Type& getReturnType() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const FunctionType& functionType);

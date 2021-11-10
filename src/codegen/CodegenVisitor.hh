@@ -23,6 +23,7 @@ namespace ingot::codegen
             const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
         );
         llvm::Value* operator()(const ast::Integer& i) override;
+        llvm::Value* operator()(const ast::String& str) override;
         llvm::Value* operator()(const ast::Operator& op, llvm::Value* lhsResult, llvm::Value* rhsResult) override;
         llvm::Value* operator()(const ast::FunctionCall& func) override;
     };

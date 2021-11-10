@@ -8,6 +8,11 @@ namespace ingot::ast
     : m_returnType(std::move(returnType))
     , m_argumentTypes(std::move(argumentTypes)) {}
 
+    const Type&
+    FunctionType::getReturnType() const {
+        return m_returnType;
+    }
+
     std::ostream& operator<<(std::ostream& str, const FunctionType& functionType) {
         str << "(";
         bool first = true;

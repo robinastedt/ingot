@@ -6,13 +6,13 @@
 namespace ingot::semantics
 {
     class SemanticTree {
-        const ast::AST& m_ast;
+        ast::AST m_ast;
         std::map<std::string, const ast::FunctionDefinition&> m_definitionMap;
 
     public:
-        SemanticTree(const ast::AST& ast);
+        SemanticTree(ast::AST ast);
 
-        bool verify(std::ostream& err) const;
+        void resolve();
 
         using const_iterator = ast::AST::const_iterator;
 

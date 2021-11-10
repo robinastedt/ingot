@@ -17,6 +17,7 @@ namespace ingot::ast
         FunctionDefinition(std::string name, Function function);
         const std::string& getName() const;
         const Function& getFunction() const;
+        Function& getFunction();
 
         bool operator<(const FunctionDefinition& rhs) const;
     };
