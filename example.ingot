@@ -11,5 +11,5 @@ longFunctionNameWithManyArguments = (int, string, int, string) -> int:
 # test2 = () -> string : () -> 1
 
 
-
-main = () -> int : () -> function(5)
+main = () -> string : () -> "Hello world"
+#main = () -> int : () -> 1

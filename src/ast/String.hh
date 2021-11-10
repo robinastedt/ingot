@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ast/Type.hh>
+
 #include <ostream>
 #include <string>
 
@@ -11,6 +13,8 @@ namespace ingot::ast
         friend std::ostream& operator<<(std::ostream& str, const String& string);
     public:
         String(std::string value);
+        static Type getType();
+        const std::string& getValue() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const String& string);

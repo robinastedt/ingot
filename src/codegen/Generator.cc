@@ -3,6 +3,8 @@
 #include <codegen/CodegenVisitor.hh>
 #include <semantics/SemanticTree.hh>
 
+#include <Error.hh>
+
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
@@ -12,7 +14,11 @@
 namespace ingot::codegen
 {
     Generator::Generator()
-    : m_context() {}
+    : m_context() {
+        LLVMInitializeNativeTarget();
+        LLVMInitializeNativeAsmParser();
+        LLVMInitializeNativeAsmPrinter();
+    }
 
     void
     Generator::run(const semantics::SemanticTree& semTree) {
@@ -31,9 +37,20 @@ namespace ingot::codegen
         llvm::Function* printfFunc = llvm::Function::Create(printfPrototype, llvm::Function::ExternalLinkage, "printf", mainModule.get());
         // User declarations
         llvm::Function* userMain = nullptr;
+        ast::Type userMainRetType;
         std::map<const ast::FunctionDefinition*, llvm::Function*> userFunctions;
         for (const ast::FunctionDefinition& definition : semTree) {
-            llvm::FunctionType* prototype = llvm::FunctionType::get(i64, false); // TODO: Handle arguments
+            const ast::FunctionType& funcType = definition.getFunction().getFunctionType();
+            const ast::Type& retType = funcType.getReturnType();
+            llvm::Type* llvmRetType = nullptr;
+            if (retType == ast::Integer::getType()) {
+                llvmRetType = i64;
+            } else if (retType == ast::String::getType()) {
+                llvmRetType = i8p;
+            } else {
+                throw internal_error("unhandled type: " + retType.getName());
+            }
+            llvm::FunctionType* prototype = llvm::FunctionType::get(llvmRetType, false); // TODO: Handle arguments
             std::string userName = definition.getName();
             
             std::string name = userFunctionPrefix + userName;
@@ -41,6 +58,7 @@ namespace ingot::codegen
             userFunctions[&definition] = function;
             if (userName == "main") {
                 userMain = function;
+                userMainRetType = retType;
             }
         }
 
@@ -48,8 +66,8 @@ namespace ingot::codegen
             llvm::BasicBlock* body = llvm::BasicBlock::Create(m_context, "entry", function);
             builder.SetInsertPoint(body);
             CodegenVisitor visitor{builder, semTree, userFunctions};
-            llvm::Value* value = definitionPtr->getFunction().getExpression().reduce(visitor);
-            builder.CreateRet(value);
+            CodegenVisitorInfo info = definitionPtr->getFunction().getExpression().reduce(visitor);
+            builder.CreateRet(info.m_value);
         }
 
         if (userMain) {
@@ -60,10 +78,18 @@ namespace ingot::codegen
             // Main defintion
             llvm::BasicBlock *mainBody = llvm::BasicBlock::Create(m_context, "entry", mainFunc);
             builder.SetInsertPoint(mainBody);
-            llvm::Constant* formatStr = builder.CreateGlobalStringPtr("%lli");
+            std::string formatStr;
+            if (userMainRetType == ast::Integer::getType()) {
+                formatStr = "%lli";
+            } else if (userMainRetType == ast::String::getType()) {
+                formatStr = "%s";
+            } else {
+                throw internal_error("unhandled type: " + userMainRetType.getName());
+            }
+            llvm::Constant* formatStrConstant = builder.CreateGlobalStringPtr(formatStr);
             //llvm::Constant* helloWorldLiteral = builder.CreateGlobalStringPtr("Hello world!\n");
             llvm::CallInst* userMainCall = builder.CreateCall(userMain);
-            builder.CreateCall(printfFunc, {formatStr, userMainCall});
+            builder.CreateCall(printfFunc, {formatStrConstant, userMainCall});
             builder.CreateRet(exitSuccess);
         }
         
@@ -71,13 +97,11 @@ namespace ingot::codegen
         {
             // Print and execute for now... need to figure out what to do with result.
             mainModule->print(llvm::outs(), nullptr);
+            std::cout << "++++++++++++++++++++++" << std::endl;
             if (userMain) {
-                llvm::Module* mainModulePtr = mainModule.get(); // Save address so that we can reclaim the module
-                llvm::ExecutionEngine *executionEngine = llvm::EngineBuilder(std::move(mainModule)).setEngineKind(llvm::EngineKind::Interpreter).create();
+                llvm::ExecutionEngine *executionEngine = llvm::EngineBuilder(std::move(mainModule)).setEngineKind(llvm::EngineKind::JIT).create();
                 llvm::Function *main = executionEngine->FindFunctionNamed(llvm::StringRef("main"));
                 auto result = executionEngine->runFunction(main, {});
-                executionEngine->removeModule(mainModulePtr);
-                mainModule.reset(mainModulePtr);
             }
             
         }

@@ -2,6 +2,7 @@
 
 #include <ast/Expression.hh>
 #include <ast/FunctionDefinition.hh>
+#include <Error.hh>
 
 #include <iostream>
 
@@ -30,7 +31,7 @@ namespace ingot::ast
     const Type&
     FunctionCall::getReturnType() const {
         if (!m_definition) {
-            throw std::runtime_error("Internal error: Tried to access function definition before its been set on function call: " + m_name);
+            throw internal_error("Tried to access function definition before its been set on function call: " + m_name);
         }
         return m_definition->getFunction().getFunctionType().getReturnType(); // :)
     }

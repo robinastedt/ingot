@@ -68,5 +68,9 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "fstream": "cpp"
-    }
+    },
+    "search.exclude": {
+        "**/.git": true,
+        "**/CMakeFiles": true
+    },
 }

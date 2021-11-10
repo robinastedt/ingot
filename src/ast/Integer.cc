@@ -10,6 +10,11 @@ namespace ingot::ast
         return m_value;
     }
 
+    Type
+    Integer::getType() {
+        return {"int"};
+    }
+
     std::ostream& operator<<(std::ostream& str, const Integer& integer) {
         return str << integer.m_value;
     }

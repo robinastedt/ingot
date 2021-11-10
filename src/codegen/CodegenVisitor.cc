@@ -1,5 +1,7 @@
 #include "CodegenVisitor.hh"
 
+#include <Error.hh>
+
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Type.h>
 
@@ -15,45 +17,51 @@ namespace ingot::codegen
     , m_semanticTree(semanticTree)
     , m_functionMap(functionMap) {}
 
-    llvm::Value*
+    CodegenVisitorInfo
     CodegenVisitor::operator()(const ast::Integer& i) {
-        return llvm::ConstantInt::get(m_i64, i.getValue(), true);
+        return {llvm::ConstantInt::get(m_i64, i.getValue(), true), i.getType()};
     }
 
-    llvm::Value*
+    CodegenVisitorInfo
     CodegenVisitor::operator()(const ast::String& str) {
-        return nullptr; // TODO: Implement
+        return {m_builder.CreateGlobalStringPtr(str.getValue()), str.getType()}; // TODO: Implement
     }
 
-    llvm::Value*
-    CodegenVisitor::operator()(const ast::Operator& op, llvm::Value* lhsResult, llvm::Value* rhsResult) {
-        switch (op.getVariant()) {
-            case ast::Operator::Variant::Add: return m_builder.CreateAdd(lhsResult, rhsResult, "tmpadd");
-            case ast::Operator::Variant::Sub: {
-                if (std::holds_alternative<ast::Integer>(op.getLhs()) && std::get<ast::Integer>(op.getLhs()).getValue() == 0) {
-                    return m_builder.CreateNeg(rhsResult, "tmpneg");
+    CodegenVisitorInfo
+    CodegenVisitor::operator()(const ast::Operator& op, CodegenVisitorInfo lhsResult, CodegenVisitorInfo rhsResult) {
+        assert(lhsResult.m_type == rhsResult.m_type);
+        ast::Type type = lhsResult.m_type;
+        if (type == ast::Integer::getType()) {
+            switch (op.getVariant()) {
+                case ast::Operator::Variant::Add: return {m_builder.CreateAdd(lhsResult.m_value, rhsResult.m_value, "tmpadd"), type};
+                case ast::Operator::Variant::Sub: {
+                    if (std::holds_alternative<ast::Integer>(op.getLhs()) && std::get<ast::Integer>(op.getLhs()).getValue() == 0) {
+                        return {m_builder.CreateNeg(rhsResult.m_value, "tmpneg"), type};
+                    }
+                    return {m_builder.CreateSub(lhsResult.m_value, rhsResult.m_value, "tmpsub"), type};
                 }
-                return m_builder.CreateSub(lhsResult, rhsResult, "tmpsub");
+                case ast::Operator::Variant::Mul: return { m_builder.CreateMul(lhsResult.m_value, rhsResult.m_value, "tmpmul"), type};
+                case ast::Operator::Variant::Div: return { m_builder.CreateSDiv(lhsResult.m_value, rhsResult.m_value, "tmpdiv"), type};
+                case ast::Operator::Variant::Mod: return { m_builder.CreateSRem(lhsResult.m_value, rhsResult.m_value, "tmprem"), type};
             }
-            case ast::Operator::Variant::Mul: return m_builder.CreateMul(lhsResult, rhsResult, "tmpmul");
-            case ast::Operator::Variant::Div: return m_builder.CreateSDiv(lhsResult, rhsResult, "tmpdiv");
-            case ast::Operator::Variant::Mod: return m_builder.CreateSRem(lhsResult, rhsResult, "tmprem");
-        } 
-        throw std::runtime_error(std::string("Internal error: Unhandled Operator::Variant: ") + (char)(op.getVariant()));
+            throw internal_error(std::string("Unhandled Operator::Variant: ") + (char)(op.getVariant()));
+        }
+        throw internal_error(std::string("Unhandled type: ") + type.getName());
+        
     }
 
-    llvm::Value*
+    CodegenVisitorInfo
     CodegenVisitor::operator()(const ast::FunctionCall& funcCall) {
         auto defIt = m_semanticTree.findDefinition(funcCall.getName());
         if (defIt == m_semanticTree.end()) {
-            throw std::runtime_error("Internal error: Could not find function definition in semantic tree: " + funcCall.getName());
+            throw internal_error("Could not find function definition in semantic tree: " + funcCall.getName());
         }
         const ast::FunctionDefinition& def = *defIt;
         auto funcIt = m_functionMap.find(&def);
         if (funcIt == m_functionMap.end()) {
-            throw std::runtime_error("Internal error: llvm::Function* not found for function: " + funcCall.getName());
+            throw internal_error("llvm::Function* not found for function: " + funcCall.getName());
         }
         llvm::Function* func = funcIt->second;
-        return m_builder.CreateCall(func);
+        return {m_builder.CreateCall(func), def.getFunction().getFunctionType().getReturnType()};
     }
 } // namespace ingot::codegen

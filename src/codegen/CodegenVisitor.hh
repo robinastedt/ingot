@@ -10,7 +10,12 @@
 
 namespace ingot::codegen
 {
-    class CodegenVisitor : public ast::Expression::Visitor<llvm::Value*> {
+    struct CodegenVisitorInfo {
+        llvm::Value* m_value;
+        ast::Type m_type;
+    };
+
+    class CodegenVisitor : public ast::Expression::Visitor<CodegenVisitorInfo> {
         //llvm::LLVMContext& m_context;
         llvm::IRBuilder<>& m_builder;
         llvm::IntegerType* m_i64;
@@ -22,9 +27,9 @@ namespace ingot::codegen
             const semantics::SemanticTree& semanticTree,
             const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
         );
-        llvm::Value* operator()(const ast::Integer& i) override;
-        llvm::Value* operator()(const ast::String& str) override;
-        llvm::Value* operator()(const ast::Operator& op, llvm::Value* lhsResult, llvm::Value* rhsResult) override;
-        llvm::Value* operator()(const ast::FunctionCall& func) override;
+        CodegenVisitorInfo operator()(const ast::Integer& i) override;
+        CodegenVisitorInfo operator()(const ast::String& str) override;
+        CodegenVisitorInfo operator()(const ast::Operator& op, CodegenVisitorInfo lhsResult, CodegenVisitorInfo rhsResult) override;
+        CodegenVisitorInfo operator()(const ast::FunctionCall& func) override;
     };
 } // namespace ingot::codegen

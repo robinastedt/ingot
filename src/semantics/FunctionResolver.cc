@@ -1,5 +1,7 @@
 #include "FunctionResolver.hh"
 
+#include <Error.hh>
+
 #include <semantics/SemanticError.hh>
 #include <sstream>
 
@@ -22,7 +24,7 @@ namespace ingot::semantics
     FunctionResolver::operator()(ast::FunctionCall& func) {
         auto defIt = m_definitionMap.find(func.getName());
         if (defIt == m_definitionMap.end()) {
-            throw SemanticError("internal error: Function definition not found: " + func.getName());
+            throw SemanticError("Function not found: '" + func.getName());
         }
         const ast::FunctionDefinition& def = defIt->second;
         func.setFunctionDefinition(def);

@@ -6,8 +6,18 @@ namespace ingot::ast
     : m_name(std::move(name)) {}
 
     bool
+    Type::operator==(const Type& rhs) const {
+        return m_name == rhs.m_name;
+    }
+
+    bool
     Type::operator!=(const Type& rhs) const {
-        return m_name != rhs.m_name;
+        return !operator==(rhs);
+    }
+
+    const std::string&
+    Type::getName() const {
+        return m_name;
     }
 
     std::ostream& operator<<(std::ostream& str, const Type& type) {

@@ -12,7 +12,9 @@ namespace ingot::ast
     public:
         Type() = default;
         Type(std::string name);
+        bool operator==(const Type& rhs) const;
         bool operator!=(const Type& rhs) const;
+        const std::string& getName() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Type& type);

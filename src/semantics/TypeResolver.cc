@@ -9,12 +9,12 @@ namespace ingot::semantics
 
     ast::Type
     TypeResolver::operator()(const ast::Integer& i) {
-        return {"int"};
+        return i.getType();
     }
 
     ast::Type
     TypeResolver::operator()(const ast::String& str) {
-        return {"string"};
+        return str.getType();
     }
 
     ast::Type
