@@ -16,6 +16,11 @@ target_link_libraries(ingotc
     LLVM
 )
 
+add_test(
+    NAME smoke_test
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/ingotc ${CMAKE_SOURCE_DIR}/example.ingot
+)
+
 add_subdirectory(parser)
 add_subdirectory(ast)
 add_subdirectory(semantics)
