@@ -13,6 +13,7 @@ namespace ingot::ast
         friend std::ostream& operator<<(std::ostream& str, const String& string);
     public:
         String(std::string value);
+
         static Type getType();
         const std::string& getValue() const;
     };

@@ -67,7 +67,9 @@
         "shared_mutex": "cpp",
         "stop_token": "cpp",
         "thread": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "*.def": "cpp",
+        "csignal": "cpp"
     },
     "search.exclude": {
         "**/.git": true,

@@ -1,15 +1,4 @@
 
-function = (int) -> int : (x) -> 5
+hello = () -> [i8] : () -> "Hello world"
 
-longFunctionNameWithManyArguments = (int, string, int, string) -> int:
-    (arg1, arg2, arg3, arg4) ->
-    1 + 2 + 3 + 4
-
-# type error for operator+
-# test = () -> string : () -> "hej" + (1 + 2)
-# type error expression type does not match return type
-# test2 = () -> string : () -> 1
-
-
-main = () -> string : () -> "Hello world"
-#main = () -> int : () -> 1
+main = () -> [i8] : () -> hello()

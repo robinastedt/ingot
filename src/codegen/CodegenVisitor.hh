@@ -1,8 +1,8 @@
 #pragma once
 
 #include <ast/Expression.hh>
-
 #include <semantics/SemanticTree.hh>
+#include <codegen/List.hh>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Value.h>
@@ -16,13 +16,14 @@ namespace ingot::codegen
     };
 
     class CodegenVisitor : public ast::Expression::Visitor<CodegenVisitorInfo> {
-        //llvm::LLVMContext& m_context;
+        llvm::Module& m_module;
         llvm::IRBuilder<>& m_builder;
         llvm::IntegerType* m_i64;
         const semantics::SemanticTree& m_semanticTree;
         const std::map<const ast::FunctionDefinition*, llvm::Function*>& m_functionMap;
     public:
         CodegenVisitor(
+            llvm::Module& module,
             llvm::IRBuilder<>& builder,
             const semantics::SemanticTree& semanticTree,
             const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap

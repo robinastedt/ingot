@@ -1,18 +1,23 @@
 #include "CodegenVisitor.hh"
+#include "List.hh"
 
 #include <Error.hh>
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Type.h>
 
+#include <boost/range/adaptor/reversed.hpp>
+
 namespace ingot::codegen
 {
     CodegenVisitor::CodegenVisitor(
+        llvm::Module& module,
         llvm::IRBuilder<>& builder,
         const semantics::SemanticTree& semanticTree,
         const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
     )
-    : m_builder(builder)
+    : m_module(module)
+    , m_builder(builder)
     , m_i64(m_builder.getInt64Ty())
     , m_semanticTree(semanticTree)
     , m_functionMap(functionMap) {}
@@ -24,7 +29,26 @@ namespace ingot::codegen
 
     CodegenVisitorInfo
     CodegenVisitor::operator()(const ast::String& str) {
-        return {m_builder.CreateGlobalStringPtr(str.getValue()), str.getType()}; // TODO: Implement
+        using Listi8 = List<char, 15>;
+        std::string prefix = str.getType().getSubtype().getName();
+        llvm::AllocaInst* listVar = m_builder.CreateAlloca(Listi8::getLLVMType(m_builder, prefix), nullptr, "wrapped_list");
+        llvm::Function* fromZeroTermArrayFunction = List<char, 15>::getLLVMFunctionFromZeroTermArray(m_module, m_builder, prefix);
+        llvm::Constant* stringConstant = m_builder.CreateGlobalStringPtr(str.getValue());
+        m_builder.CreateCall(fromZeroTermArrayFunction, {stringConstant, listVar});
+        //llvm::Function* emptyFunction = List<char, 15>::getLLVMFunctionEmpty(m_module, m_builder, prefix);
+        //llvm::Function* appendFunction = List<char, 15>::getLLVMFunctionAppend(m_module, m_builder, prefix);
+        //m_builder.CreateCall(emptyFunction, {listVar});
+        ////llvm::Value* list = emptyList;
+        //for (char c : boost::adaptors::reverse(str.getValue())) {
+        //    llvm::ConstantInt* charValue = llvm::ConstantInt::get(m_builder.getInt8Ty(), c);
+        //    m_builder.CreateCall(appendFunction, {charValue, listVar, listVar});
+        //}
+        llvm::LoadInst* loadInst = m_builder.CreateLoad(listVar, "load_return");
+        return {loadInst, str.getType()};
+        //llvm::Value* emptyList = m_builder.CreateCall(m_listi8.getEmptyFunction());
+        //llvm::Value* listWithItem = m_builder.CreateCall(m_listi8.getAppendFunction(), {m_builder.getInt8(str.getValue()[0]), emptyList});
+        //return {listWithItem, str.getType()};
+        //return {m_builder.CreateGlobalStringPtr(str.getValue()), str.getType()}; // TODO: Implement
     }
 
     CodegenVisitorInfo

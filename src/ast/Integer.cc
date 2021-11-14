@@ -12,7 +12,7 @@ namespace ingot::ast
 
     Type
     Integer::getType() {
-        return {"int"};
+        return Type::int64();
     }
 
     std::ostream& operator<<(std::ostream& str, const Integer& integer) {

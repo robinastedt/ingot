@@ -13,7 +13,7 @@ namespace ingot::ast
         friend std::ostream& operator<<(std::ostream&, const Integer&);
     
     public:
-        Integer(int64_t value);
+        Integer(int64_t value); // TODO: Handle more sizes
         int64_t getValue() const;
         static Type getType();
     };

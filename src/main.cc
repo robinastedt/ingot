@@ -28,8 +28,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::cout << ast << std::endl
-              << "++++++++++++++++++++++" << std::endl;
+    //std::cout << ast << std::endl
+    //          << "++++++++++++++++++++++" << std::endl;
     
     ingot::semantics::SemanticTree semTree{ast};
     try {
