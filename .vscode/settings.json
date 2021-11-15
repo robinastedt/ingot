@@ -75,4 +75,5 @@
         "**/.git": true,
         "**/CMakeFiles": true
     },
+    "cmake.sourceDirectory": "${workspaceFolder}/src",
 }

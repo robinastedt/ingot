@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/src/ingotc",
+            "program": "${workspaceFolder}/build/ingotc",
             "args": ["${workspaceFolder}/example.ingot"],
             "stopAtEntry": true,
             "cwd": "${fileDirname}",
