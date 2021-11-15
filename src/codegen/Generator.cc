@@ -1,7 +1,7 @@
 #include "Generator.hh"
 
 #include <codegen/CodegenVisitor.hh>
-#include <codegen/List.hh>
+#include <codegen/ListOperations.hh>
 
 #include <semantics/SemanticTree.hh>
 
@@ -9,9 +9,7 @@
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
-#include <llvm/ExecutionEngine/GenericValue.h>
 
-#include <llvm/Object/ObjectFile.h>
 
 #include <iostream>
 
@@ -38,23 +36,20 @@ namespace ingot::codegen
 
         auto mainModule = std::make_unique<llvm::Module>("ingot_main_module", m_context);
 
-        using Listi8 = List<char, 15>;
-        Listi8::getLLVMFunctionEmpty(*mainModule, builder, ast::Type::int8().getName());
-
-        Listi8 list = Listi8::empty();
-        llvm::StructType* stringStructType = Listi8::getLLVMType(builder, ast::Type::int8().getName());
-        llvm::PointerType* stringPtrType = llvm::PointerType::get(stringStructType, 0);
-
-        // Declare struct for [i8]
-        //List listi8{builder, mainModule.get(), i8};
+        TypeContext typeContext{builder, *mainModule};
+        ListOperations::Collection listOperationsCollection{typeContext};
 
         // printf declaration
         llvm::FunctionType* printfPrototype = llvm::FunctionType::get(i8p, true);
         llvm::Function* printfFunc = llvm::Function::Create(printfPrototype, llvm::Function::ExternalLinkage, "printf", mainModule.get());
 
-        // printString declaration
-        llvm::FunctionType* printStringPrototype = llvm::FunctionType::get(builder.getVoidTy(), {stringPtrType}, false);
-        llvm::Function* printStringFunc = llvm::Function::Create(printStringPrototype, llvm::Function::ExternalLinkage, "ingot_runtime_print_string", mainModule.get());
+        // print_string declaration
+        ast::Type stringType = ast::Type::list(ast::Type::int8());
+        llvm::Type* stringLLVMType = typeContext.getLLVMType(stringType);
+        llvm::PointerType* stringPtrLLVMType = llvm::PointerType::get(stringLLVMType, 0);
+        ListOperations stringOperations = listOperationsCollection.get(ast::Type::list(ast::Type::int8()));
+        llvm::FunctionType* printStringPrototype = llvm::FunctionType::get(builder.getVoidTy(), {stringPtrLLVMType}, false);
+        llvm::Function* printStringFunc = llvm::Function::Create(printStringPrototype, llvm::Function::InternalLinkage, "ingot_print_string", mainModule.get());
 
         // User declarations
         llvm::Function* userMain = nullptr;
@@ -63,14 +58,7 @@ namespace ingot::codegen
         for (const ast::FunctionDefinition& definition : semTree) {
             const ast::FunctionType& funcType = definition.getFunction().getFunctionType();
             const ast::Type& retType = funcType.getReturnType();
-            llvm::Type* llvmRetType = nullptr;
-            if (retType == ast::Integer::getType()) {
-                llvmRetType = i64;
-            } else if (retType == ast::String::getType()) {
-                llvmRetType = Listi8::getLLVMType(builder, ast::Type::int8().getName());
-            } else {
-                throw internal_error("unhandled type: " + retType.getName());
-            }
+            llvm::Type* llvmRetType = typeContext.getLLVMType(retType);
             llvm::FunctionType* prototype = llvm::FunctionType::get(llvmRetType, false); // TODO: Handle arguments
             std::string userName = definition.getName();
             
@@ -83,10 +71,41 @@ namespace ingot::codegen
             }
         }
 
+        // print string definition
+        {
+            llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(m_context, "entry", printStringFunc);
+            llvm::BasicBlock* emptyStringBlock = llvm::BasicBlock::Create(m_context, "empty_string", printStringFunc);
+            llvm::BasicBlock* printChunkBlock = llvm::BasicBlock::Create(m_context, "print_chunk", printStringFunc);
+            builder.SetInsertPoint(entryBlock);
+            llvm::Argument* inputPtr = printStringFunc->getArg(0);
+            
+            llvm::Value* inputCountPtr = builder.CreateStructGEP(inputPtr, 2, "inputCountPtr");
+            llvm::Value* inputCount = builder.CreateLoad(inputCountPtr);
+            llvm::IntegerType* counterType = typeContext.getLLVMTypeForListCounterMember();
+            llvm::ConstantInt* zeroCountConst = llvm::ConstantInt::get(counterType, 0);
+            llvm::Value* isEmpty = builder.CreateICmpEQ(inputCount, zeroCountConst, "isEmpty");
+            builder.CreateCondBr(isEmpty, emptyStringBlock, printChunkBlock);
+
+            builder.SetInsertPoint(emptyStringBlock);
+            builder.CreateRetVoid();
+
+            builder.SetInsertPoint(printChunkBlock);
+            llvm::Value* inputArrayPtr = builder.CreateStructGEP(inputPtr, 1, "inputArrayPtr");
+            llvm::ArrayType* arrayType = typeContext.getLLVMTypeForListArrayMember(stringType);
+            llvm::Value* arrayLength = llvm::ConstantInt::get(counterType, arrayType->getArrayNumElements());
+            llvm::Value* index = builder.CreateSub(arrayLength, inputCount, "inputIndex");
+            llvm::Value* firstElementPtr = builder.CreateInBoundsGEP(inputArrayPtr, {zeroCountConst, index}, "firstElementPtr");
+            llvm::Constant* formatString = builder.CreateGlobalStringPtr("%.*s");
+            builder.CreateCall(printfFunc, {formatString, inputCount, firstElementPtr}, "printf_of_chunk");
+            // TODO: Recursive call with next
+            builder.CreateRetVoid();
+        }
+
+        // User definitions
         for (const auto&[definitionPtr, function] : userFunctions) {
             llvm::BasicBlock* body = llvm::BasicBlock::Create(m_context, "entry", function);
             builder.SetInsertPoint(body);
-            CodegenVisitor visitor{*mainModule, builder, semTree, userFunctions};
+            CodegenVisitor visitor{typeContext, listOperationsCollection, semTree, userFunctions};
             CodegenVisitorInfo info = definitionPtr->getFunction().getExpression().reduce(visitor);
             builder.CreateRet(info.m_value);
         }
@@ -107,9 +126,9 @@ namespace ingot::codegen
                 builder.CreateRet(exitSuccess);
             } else if (userMainRetType == ast::String::getType()) {
                 llvm::CallInst* userMainCall = builder.CreateCall(userMain);
-                llvm::AllocaInst* stackString = builder.CreateAlloca(stringStructType, nullptr, "stack_string");
-                builder.CreateStore(userMainCall, stackString);
-                builder.CreateCall(printStringFunc, stackString);
+                llvm::AllocaInst* stringPtr = builder.CreateAlloca(typeContext.getLLVMType(ast::String::getType()), nullptr, "stringPtr");
+                builder.CreateStore(userMainCall, stringPtr);
+                builder.CreateCall(printStringFunc, stringPtr);
                 builder.CreateRet(exitSuccess);
             } else {
                 throw internal_error("unhandled type: " + userMainRetType.getName());
@@ -120,14 +139,13 @@ namespace ingot::codegen
         {
             // Print and execute for now... need to figure out what to do with result.
             mainModule->print(llvm::outs(), nullptr);
-            std::cout << "++++++++++++++++++++++" << std::endl;
-            if (userMain) {
-                llvm::ExecutionEngine *executionEngine = llvm::EngineBuilder(std::move(mainModule)).setEngineKind(llvm::EngineKind::JIT).create();
-                llvm::Function *main = executionEngine->FindFunctionNamed(llvm::StringRef("main"));
-                auto expectedObjectFile = llvm::object::ObjectFile::createObjectFile("build/src/codegen/CMakeFiles/ingotruntime.dir/List.cc.o");
-                executionEngine->addObjectFile(std::move(expectedObjectFile.get()));
-                auto result = executionEngine->runFunction(main, {});
-            }
+            
+            // std::cout << "++++++++++++++++++++++" << std::endl;
+            // if (userMain) {
+            //     llvm::ExecutionEngine *executionEngine = llvm::EngineBuilder(std::move(mainModule)).setEngineKind(llvm::EngineKind::JIT).create();
+            //     llvm::Function *main = executionEngine->FindFunctionNamed(llvm::StringRef("main"));
+            //     auto result = executionEngine->runFunction(main, {});
+            // }
             
         }
         

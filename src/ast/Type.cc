@@ -33,6 +33,11 @@ namespace ingot::ast
         return *m_subtype;
     }
 
+    Type::Variant
+    Type::getVariant() const {
+        return m_variant;
+    }
+
     Type
     Type::int8() {
         return Type{Variant::i8};;
@@ -61,6 +66,13 @@ namespace ingot::ast
         return !operator==(rhs);
     }
 
+    bool
+    Type::operator<(const Type& rhs) const {
+        if (m_variant == Variant::List && rhs.m_variant == Variant::List) {
+            return getSubtype() < rhs.getSubtype();
+        }
+        return m_variant < rhs.m_variant;
+    }
     std::string
     Type::getName() const {
         switch (m_variant) {
@@ -75,13 +87,14 @@ namespace ingot::ast
     }
 
     std::string
-    Type::getSymbolIdentifier() const {
+    Type::getNameEncoded() const {
         switch (m_variant) {
             case Variant::i8: return "i8";
             case Variant::i64: return "i64";
             case Variant::List: {
                 assert(m_subtype);
-                return "LB" + m_subtype->getSymbolIdentifier() + "LE";
+                // L = List, E = end
+                return "L" + m_subtype->getNameEncoded() + "E";
             }
             default: throw internal_error("Unsupported type variant: " + (int)m_variant);
         }

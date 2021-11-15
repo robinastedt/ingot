@@ -2,11 +2,10 @@
 
 #include <ast/Expression.hh>
 #include <semantics/SemanticTree.hh>
-#include <codegen/List.hh>
+#include <codegen/ListOperations.hh>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Value.h>
-#include <llvm/IR/DerivedTypes.h>
 
 namespace ingot::codegen
 {
@@ -19,12 +18,14 @@ namespace ingot::codegen
         llvm::Module& m_module;
         llvm::IRBuilder<>& m_builder;
         llvm::IntegerType* m_i64;
+        TypeContext& m_typeContext;
+        ListOperations::Collection& m_listOperationsCollection;
         const semantics::SemanticTree& m_semanticTree;
         const std::map<const ast::FunctionDefinition*, llvm::Function*>& m_functionMap;
     public:
         CodegenVisitor(
-            llvm::Module& module,
-            llvm::IRBuilder<>& builder,
+            TypeContext& typeContext,
+            ListOperations::Collection& listOperationsCollection,
             const semantics::SemanticTree& semanticTree,
             const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
         );

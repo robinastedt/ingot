@@ -6,14 +6,14 @@
 namespace ingot::ast
 {
     class Type {
-        
+    public:
         enum class Variant {
             Unspecified,
             i8,
             i64,
             List
         };
-
+    private:
         Variant m_variant;
         std::unique_ptr<Type> m_subtype;
 
@@ -26,6 +26,7 @@ namespace ingot::ast
         Type(const Type& other);
         Type& operator=(const Type& other);
         Type getSubtype() const;
+        Variant getVariant() const;
 
         static Type int8();
         static Type int64();
@@ -34,10 +35,11 @@ namespace ingot::ast
         
         bool operator==(const Type& rhs) const;
         bool operator!=(const Type& rhs) const;
+        bool operator<(const Type& rhs) const;
         std::string getName() const;
 
-        // TODO: Use instead of hardcoded "prefix" in codegen
-        std::string getSymbolIdentifier() const;
+        // Generates a name which is a valid c symbol
+        std::string getNameEncoded() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Type& type);
