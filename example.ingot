@@ -1,4 +1,4 @@
 
-hello = () -> [i8] : () -> "Hello world"
+hello = () -> [i8] : () -> "Hello world and a very long good bye"
 
 main = () -> [i8] : () -> hello()

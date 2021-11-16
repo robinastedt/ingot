@@ -76,6 +76,7 @@ namespace ingot::codegen
             llvm::BasicBlock* entryBlock = llvm::BasicBlock::Create(m_context, "entry", printStringFunc);
             llvm::BasicBlock* emptyStringBlock = llvm::BasicBlock::Create(m_context, "empty_string", printStringFunc);
             llvm::BasicBlock* printChunkBlock = llvm::BasicBlock::Create(m_context, "print_chunk", printStringFunc);
+            llvm::BasicBlock* recurseBlock = llvm::BasicBlock::Create(m_context, "recurse", printStringFunc);
             builder.SetInsertPoint(entryBlock);
             llvm::Argument* inputPtr = printStringFunc->getArg(0);
             
@@ -90,14 +91,20 @@ namespace ingot::codegen
             builder.CreateRetVoid();
 
             builder.SetInsertPoint(printChunkBlock);
-            llvm::Value* inputArrayPtr = builder.CreateStructGEP(inputPtr, 1, "inputArrayPtr");
             llvm::ArrayType* arrayType = typeContext.getLLVMTypeForListArrayMember(stringType);
             llvm::Value* arrayLength = llvm::ConstantInt::get(counterType, arrayType->getArrayNumElements());
             llvm::Value* index = builder.CreateSub(arrayLength, inputCount, "inputIndex");
+            llvm::Value* inputArrayPtr = builder.CreateStructGEP(inputPtr, 1, "inputArrayPtr");
             llvm::Value* firstElementPtr = builder.CreateInBoundsGEP(inputArrayPtr, {zeroCountConst, index}, "firstElementPtr");
             llvm::Constant* formatString = builder.CreateGlobalStringPtr("%.*s");
             builder.CreateCall(printfFunc, {formatString, inputCount, firstElementPtr}, "printf_of_chunk");
-            // TODO: Recursive call with next
+            llvm::Value* nextPtr = builder.CreateStructGEP(inputPtr, 0, "nextPtr");
+            llvm::Value* next = builder.CreateLoad(nextPtr);
+            llvm::Value* nextIsNull = builder.CreateIsNull(next, "nextIsNull");
+            builder.CreateCondBr(nextIsNull, emptyStringBlock, recurseBlock);
+
+            builder.SetInsertPoint(recurseBlock);
+            builder.CreateCall(printStringFunc, {next});
             builder.CreateRetVoid();
         }
 
