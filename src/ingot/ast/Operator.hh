@@ -3,11 +3,13 @@
 #include <memory>
 #include <iostream>
 
+#include <ingot/ast/Node.hh>
+
 namespace ingot::ast
 {
     class Expression;
 
-    class Operator {
+    class Operator : public Node {
     public:
         enum class Variant : char {
             Add = '+',

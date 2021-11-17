@@ -44,7 +44,7 @@ namespace ingot::semantics
             if (exprType != retType) {
                 std::stringstream ss;
                 ss << "expression type '" << exprType << "' does not match function's return type: '" << retType << "'";
-                throw SemanticError(ss.str());
+                throw SemanticError(ss.str(), expr.getLocation());
             }
         }
  

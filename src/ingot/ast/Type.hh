@@ -1,11 +1,13 @@
 #pragma once
 
+#include <ingot/ast/Node.hh>
+
 #include <string>
 #include <memory>
 
 namespace ingot::ast
 {
-    class Type {
+    class Type : public Node {
     public:
         enum class Variant {
             Unspecified,

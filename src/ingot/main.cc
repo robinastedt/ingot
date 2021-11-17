@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     try {
         semTree.resolve();
     } catch (const ingot::semantics::SemanticError& err) {
-        std::cerr << filename << ": " << err.what() << std::endl;
+        std::cerr << filename << ":" << err.lineno() << ":" << err.colno() << ": " << err.what() << std::endl;
         return 1;
     }
     ingot::codegen::Generator generator;

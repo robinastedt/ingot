@@ -22,7 +22,7 @@ namespace ingot::semantics
         if (lhsResult != rhsResult) {
             std::stringstream ss;
             ss << "In expression '" << op << "': Type of lhs '" << lhsResult << "' does not match type of rhs '" << rhsResult << "'";
-            throw SemanticError(ss.str());
+            throw SemanticError(ss.str(), op.getLocation());
         }
         return lhsResult;
     }

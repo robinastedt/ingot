@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include <ingot/parser/location.hh>
+
 namespace ingot::parser
 {
     class SyntaxError : public std::runtime_error {
@@ -9,7 +11,7 @@ namespace ingot::parser
         int m_colno;
 
     public:
-        SyntaxError(const std::string& what, int lineno, int colno);
+        SyntaxError(const std::string& what, const parser::location& location);
         int lineno() const;
         int colno() const;
     };

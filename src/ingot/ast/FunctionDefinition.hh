@@ -6,7 +6,7 @@
 
 namespace ingot::ast
 {
-    class FunctionDefinition {
+    class FunctionDefinition : public Node {
         std::string m_name;
         Function m_function;
 

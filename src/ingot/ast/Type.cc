@@ -7,19 +7,23 @@
 namespace ingot::ast
 {
     Type::Type(Variant variant, std::unique_ptr<Type> subtype)
-    : m_variant(variant)
+    : Node()
+    , m_variant(variant)
     , m_subtype(std::move(subtype)) {}
 
     Type::Type()
-    : m_variant(Variant::Unspecified)
+    : Node()
+    , m_variant(Variant::Unspecified)
     , m_subtype() {}
 
     Type::Type(const Type& other)
-    : m_variant(other.m_variant)
+    : Node(other)
+    , m_variant(other.m_variant)
     , m_subtype(other.m_subtype ? std::make_unique<Type>(*other.m_subtype) : nullptr) {}
 
     Type&
     Type::operator=(const Type& other) {
+        Node::operator=(other);
         m_variant = other.m_variant;
         m_subtype = other.m_subtype ? std::make_unique<Type>(*other.m_subtype) : nullptr;
         return *this;

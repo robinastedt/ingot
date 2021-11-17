@@ -64,22 +64,11 @@ namespace ingot::ast
             }, static_cast<const ExpressionVariant&>(*this));
         }
 
-        void
-        update(UpdateVisitor&& visitor) {
-            update(visitor);
-        }
+        void update(UpdateVisitor&& visitor);
+        void update(UpdateVisitor& visitor);
 
-        void
-        update(UpdateVisitor& visitor) {
-            return std::visit(overloaded{
-                [&](auto& expr) { return visitor(expr); },
-                [&](Operator& op) {
-                    op.getLhs().update(visitor);
-                    op.getRhs().update(visitor);
-                    visitor(op);
-                }
-            }, static_cast<ExpressionVariant&>(*this));
-        }
+        void setLocation(ingot::parser::location location);
+        const parser::location& getLocation() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Expression& expr);

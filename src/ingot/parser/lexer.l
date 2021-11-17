@@ -4,8 +4,12 @@
 
 #include <cassert>
 
-#define YY_DECL int ingot::parser::Scanner::lex(ingot::parser::Parser::semantic_type *yylval)
-#define YY_USER_ACTION setColumn(getColumn() + YYLeng());
+#define YY_DECL int ingot::parser::Scanner::lex(ingot::parser::Parser::semantic_type *yylval, ingot::parser::location* yylloc)
+#define YY_USER_ACTION \
+    yylloc->begin.line = yylloc->end.line = lineno(); \
+    yylloc->begin.column = yylloc->end.column; \
+    yylloc->end.column += YYLeng(); \
+    
 
 static std::string stringFromToken(const std::string& str);
 %}
@@ -25,11 +29,11 @@ string         (\"(\\.|[^"\\])*\")
 %%
 
 "#"                 { BEGIN(COMMENT); }
-<COMMENT>"\n"       { BEGIN(INITIAL); setColumn(0); }
+<COMMENT>"\n"       { BEGIN(INITIAL); yylloc->begin.column = yylloc->end.column = 1; }
 <COMMENT><<EOF>>    { BEGIN(INITIAL); return Parser::token::YYEOF; }
 <COMMENT>.          { }
 {whitespace}        { }
-{linebreak}         { setColumn(0); }
+{linebreak}         { yylloc->begin.column = yylloc->end.column = 1; }
 "i8"                { return Parser::token::TYPE_INT8; }
 "i64"               { return Parser::token::TYPE_INT64; }
 {integer}           { yylval->emplace<int64_t>(strtoll(YYText(), nullptr, 10)); return Parser::token::INTEGER; }

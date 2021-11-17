@@ -3,7 +3,8 @@
 namespace ingot::ast
 {
     Integer::Integer(int64_t value)
-    : m_value(value) {}
+    : Node()
+    , m_value(value) {}
 
     int64_t
     Integer::getValue() const {

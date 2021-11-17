@@ -3,7 +3,8 @@
 namespace ingot::ast
 {
     Function::Function(FunctionType type, std::vector<std::string> arguments, Expression expression)
-    : m_type(std::move(type))
+    : Node()
+    , m_type(std::move(type))
     , m_arguments(std::move(arguments))
     , m_expression(std::move(expression)) {}
 

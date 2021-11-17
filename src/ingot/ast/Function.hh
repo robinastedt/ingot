@@ -8,7 +8,7 @@
 
 namespace ingot::ast
 {
-    class Function {
+    class Function : public Node {
         ast::FunctionType m_type;
         std::vector<std::string> m_arguments;
         ast::Expression m_expression;

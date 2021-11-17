@@ -3,7 +3,8 @@
 namespace ingot::ast
 {
     String::String(std::string value)
-    : m_value(std::move(value)) {}
+    : Node()
+    , m_value(std::move(value)) {}
 
     Type
     String::getType() {

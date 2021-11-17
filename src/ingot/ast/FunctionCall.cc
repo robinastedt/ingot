@@ -9,7 +9,8 @@
 namespace ingot::ast
 {
     FunctionCall::FunctionCall(std::string name, std::vector<Expression> arguments)
-    : m_name(std::move(name))
+    : Node()
+    , m_name(std::move(name))
     , m_arguments(std::move(arguments))
     , m_definition(nullptr /*To be filled in by semantic analyzer*/) {}
 

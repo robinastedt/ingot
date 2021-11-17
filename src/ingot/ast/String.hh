@@ -7,7 +7,7 @@
 
 namespace ingot::ast
 {
-    class String {
+    class String : public Node {
         std::string m_value;
 
         friend std::ostream& operator<<(std::ostream& str, const String& string);

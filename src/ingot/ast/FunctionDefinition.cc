@@ -3,7 +3,8 @@
 namespace ingot::ast
 {
     FunctionDefinition::FunctionDefinition(std::string name, Function function)
-        : m_name(std::move(name))
+        : Node()
+        , m_name(std::move(name))
         , m_function(std::move(function)) {}
 
     const std::string&

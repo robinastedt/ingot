@@ -5,7 +5,8 @@
 namespace ingot::ast
 {
     FunctionType::FunctionType(ast::Type returnType, std::vector<ast::Type> argumentTypes)
-    : m_returnType(std::move(returnType))
+    : Node()
+    , m_returnType(std::move(returnType))
     , m_argumentTypes(std::move(argumentTypes)) {}
 
     const Type&

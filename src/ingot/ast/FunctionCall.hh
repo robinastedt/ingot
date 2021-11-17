@@ -11,7 +11,7 @@ namespace ingot::ast
     class Expression;
     class FunctionDefinition;
 
-    class FunctionCall {
+    class FunctionCall : public Node {
         std::string m_name;
         std::vector<Expression> m_arguments;
         const FunctionDefinition* m_definition;

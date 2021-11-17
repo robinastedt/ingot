@@ -5,17 +5,20 @@
 namespace ingot::ast
 {
     Operator::Operator(std::unique_ptr<Expression> lhs, std::unique_ptr<Expression> rhs, Variant variant)
-        : m_lhs(std::move(lhs))
+        : Node()
+        , m_lhs(std::move(lhs))
         , m_rhs(std::move(rhs))
         , m_variant(variant) {}
 
     Operator::Operator(const Operator& other)
-        : m_lhs(std::make_unique<Expression>(*other.m_lhs))
+        : Node(other)
+        , m_lhs(std::make_unique<Expression>(*other.m_lhs))
         , m_rhs(std::make_unique<Expression>(*other.m_rhs))
         , m_variant(other.m_variant) {}
 
     Operator&
     Operator::operator=(const Operator& other) {
+        Node::operator=(other);
         m_lhs = std::make_unique<Expression>(*other.m_lhs);
         m_rhs = std::make_unique<Expression>(*other.m_rhs);
         m_variant = other.m_variant;

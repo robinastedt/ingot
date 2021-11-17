@@ -6,7 +6,7 @@
 
 namespace ingot::ast
 {
-    class FunctionType {
+    class FunctionType : public Node {
         ast::Type m_returnType;
         std::vector<ast::Type> m_argumentTypes;
 

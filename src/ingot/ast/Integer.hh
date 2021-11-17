@@ -7,7 +7,7 @@
 
 namespace ingot::ast
 {
-    class Integer {
+    class Integer : public Node {
         int64_t m_value;
 
         friend std::ostream& operator<<(std::ostream&, const Integer&);
