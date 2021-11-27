@@ -5,6 +5,7 @@
 #include <ingot/semantics/SemanticError.hh>
 
 #include <sstream>
+#include <set>
 
 namespace ingot::semantics
 {
@@ -29,6 +30,20 @@ namespace ingot::semantics
     void
     SemanticTree::resolve() {
         
+        std::map<std::string, const ast::FunctionDefinition*> seenFunctions;
+        for (ast::FunctionDefinition& def : m_ast) {
+            if (auto it = seenFunctions.find(def.getName()); it != seenFunctions.end()) {
+                const ast::FunctionDefinition& prevDef = *it->second;
+                const auto& prevLoc = prevDef.getLocation();
+                std::stringstream ss;
+                ss << "Function '" << def.getName() << "' "
+                   << "already declared at line " << prevLoc.begin.line
+                   << ", column " << prevLoc.begin.column;
+                throw SemanticError(ss.str(), def.getLocation());
+            }
+            seenFunctions.emplace(std::make_pair(def.getName(), &def));
+        }
+
         for (ast::FunctionDefinition& def : m_ast) {
             ast::Function& function = def.getFunction();
             ast::Expression& expr = function.getExpression();
