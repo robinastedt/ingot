@@ -13,6 +13,12 @@ namespace ingot::ast
     Expression::update(UpdateVisitor& visitor) {
         return std::visit(overloaded{
             [&](auto& expr) { return visitor(expr); },
+            [&](FunctionCall& funcCall) {
+                    for (Expression& argument : funcCall.getArguments()) {
+                        argument.update(visitor);
+                    }
+                    return visitor(funcCall);  
+            },
             [&](Operator& op) {
                 op.getLhs().update(visitor);
                 op.getRhs().update(visitor);

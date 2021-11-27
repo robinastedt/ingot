@@ -1,5 +1,6 @@
 
 add_library(ingotast STATIC
+    ArgumentReference.cc
     AST.cc
     Expression.cc
     Function.cc

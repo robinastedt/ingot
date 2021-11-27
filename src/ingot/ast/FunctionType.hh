@@ -16,6 +16,9 @@ namespace ingot::ast
         FunctionType(ast::Type returnType, std::vector<ast::Type> argumentTypes);
 
         const Type& getReturnType() const;
+        const size_t getArgumentCount() const;
+        const Type& getArgumentType(size_t index) const;
+        const std::vector<ast::Type>& getArgumentTypes() const;
     };
 
     std::ostream& operator<<(std::ostream& str, const FunctionType& functionType);

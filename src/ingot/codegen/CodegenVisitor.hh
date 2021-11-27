@@ -17,6 +17,7 @@ namespace ingot::codegen
     class CodegenVisitor : public ast::Expression::Visitor<CodegenVisitorInfo> {
         llvm::Module& m_module;
         llvm::IRBuilder<>& m_builder;
+        llvm::Function* m_scopeFunction;
         llvm::IntegerType* m_i64;
         TypeContext& m_typeContext;
         ListOperations::Collection& m_listOperationsCollection;
@@ -24,6 +25,7 @@ namespace ingot::codegen
         const std::map<const ast::FunctionDefinition*, llvm::Function*>& m_functionMap;
     public:
         CodegenVisitor(
+            llvm::Function* scopeFunction,
             TypeContext& typeContext,
             ListOperations::Collection& listOperationsCollection,
             const semantics::SemanticTree& semanticTree,
@@ -32,6 +34,7 @@ namespace ingot::codegen
         CodegenVisitorInfo operator()(const ast::Integer& i) override;
         CodegenVisitorInfo operator()(const ast::String& str) override;
         CodegenVisitorInfo operator()(const ast::Operator& op, CodegenVisitorInfo lhsResult, CodegenVisitorInfo rhsResult) override;
-        CodegenVisitorInfo operator()(const ast::FunctionCall& func) override;
+        CodegenVisitorInfo operator()(const ast::FunctionCall& func, const std::vector<CodegenVisitorInfo>& results) override;
+        CodegenVisitorInfo operator()(const ast::ArgumentReference& arg) override;
     };
 } // namespace ingot::codegen

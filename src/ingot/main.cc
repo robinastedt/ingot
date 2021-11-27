@@ -9,6 +9,7 @@
 #include <ingot/semantics/SemanticError.hh>
 #include <ingot/codegen/Generator.hh>
 
+constexpr bool DEBUG = false;
 
 int main(int argc, char** argv) {
     std::string filename;
@@ -35,6 +36,9 @@ int main(int argc, char** argv) {
     try {
         semTree.resolve();
     } catch (const ingot::semantics::SemanticError& err) {
+        if constexpr (DEBUG) {
+            std::cerr << ast << std::endl;
+        }
         std::cerr << filename << ":" << err.lineno() << ":" << err.colno() << ": " << err.what() << std::endl;
         return 1;
     }

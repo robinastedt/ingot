@@ -1,5 +1,5 @@
 add_library(ingotsemantics
-    FunctionResolver.cc
+    IdentifierResolver.cc
     SemanticError.cc
     SemanticTree.cc
     TypeResolver.cc

@@ -1,5 +1,7 @@
 #include "FunctionType.hh"
 
+#include <ingot/Error.hh>
+
 #include <iostream>
 
 namespace ingot::ast
@@ -12,6 +14,24 @@ namespace ingot::ast
     const Type&
     FunctionType::getReturnType() const {
         return m_returnType;
+    }
+
+    const size_t
+    FunctionType::getArgumentCount() const {
+        return m_argumentTypes.size();
+    }
+
+    const Type&
+    FunctionType::getArgumentType(size_t index) const {
+        if (index >= m_argumentTypes.size()) {
+            throw internal_error("Out of bounds type check. index=" + std::to_string(index) + ", size=" + std::to_string(m_argumentTypes.size()));
+        }
+        return m_argumentTypes[index];
+    }
+
+    const std::vector<ast::Type>&
+    FunctionType::getArgumentTypes() const {
+        return m_argumentTypes;
     }
 
     std::ostream& operator<<(std::ostream& str, const FunctionType& functionType) {

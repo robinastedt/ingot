@@ -1,6 +1,6 @@
 #include "SemanticTree.hh"
 
-#include <ingot/semantics/FunctionResolver.hh>
+#include <ingot/semantics/IdentifierResolver.hh>
 #include <ingot/semantics/TypeResolver.hh>
 #include <ingot/semantics/SemanticError.hh>
 
@@ -28,11 +28,12 @@ namespace ingot::semantics
 
     void
     SemanticTree::resolve() {
-        FunctionResolver functionResolver{m_definitionMap};
+        
         for (ast::FunctionDefinition& def : m_ast) {
             ast::Function& function = def.getFunction();
             ast::Expression& expr = function.getExpression();
-            expr.update(functionResolver);
+            IdentifierResolver identifierResolver{function, m_definitionMap};
+            expr.update(identifierResolver);
         }
 
         TypeResolver typeResolver;

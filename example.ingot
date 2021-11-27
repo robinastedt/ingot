@@ -1,4 +1,6 @@
 
-hello = () -> [i8] : () -> "Hello world and a very long good bye"
+add = (i64, i64, [i8]) -> i64 : (lhs, rhs, str) -> lhs + rhs
 
-main = () -> [i8] : () -> hello()
+hello = () -> [i8] : () -> "Hello world and a very long good bye 💩"
+
+main = () -> i64 : () -> add(1, 2, hello())

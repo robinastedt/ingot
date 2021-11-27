@@ -92,6 +92,7 @@ exprs           : %empty                    { $$ = std::vector<ast::Expression>(
 expr    : INTEGER                   { $$ = ast::Integer($1); $$.setLocation(@1); }
         | STRING                    { $$ = ast::String($1); $$.setLocation(@1); }
         | IDENT LPAREN exprs RPAREN { $$ = ast::FunctionCall($1, $3); $$.setLocation(@1 + @4); }
+        | IDENT                     { $$ = ast::ArgumentReference($1); $$.setLocation(@1); }
         | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Add); $$.setLocation(@1 + @3); }
         | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Sub); $$.setLocation(@1 + @3); }
         | expr MULTIPLY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Mul); $$.setLocation(@1 + @3); }

@@ -21,6 +21,7 @@ namespace ingot::ast
         const Expression& getExpression() const;
         Expression& getExpression();
         const FunctionType& getFunctionType() const;
+        size_t findArgumentIndex(const std::string& name) const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Function& function);

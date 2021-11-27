@@ -59,7 +59,11 @@ namespace ingot::codegen
             const ast::FunctionType& funcType = definition.getFunction().getFunctionType();
             const ast::Type& retType = funcType.getReturnType();
             llvm::Type* llvmRetType = typeContext.getLLVMType(retType);
-            llvm::FunctionType* prototype = llvm::FunctionType::get(llvmRetType, false); // TODO: Handle arguments
+            std::vector<llvm::Type*> argumentTypes;
+            for (const ast::Type& astType : funcType.getArgumentTypes()) {
+                argumentTypes.push_back(typeContext.getLLVMType(astType));
+            }
+            llvm::FunctionType* prototype = llvm::FunctionType::get(llvmRetType, argumentTypes, false); // TODO: Handle arguments
             std::string userName = definition.getName();
             
             std::string name = userFunctionPrefix + userName;
@@ -112,7 +116,7 @@ namespace ingot::codegen
         for (const auto&[definitionPtr, function] : userFunctions) {
             llvm::BasicBlock* body = llvm::BasicBlock::Create(m_context, "entry", function);
             builder.SetInsertPoint(body);
-            CodegenVisitor visitor{typeContext, listOperationsCollection, semTree, userFunctions};
+            CodegenVisitor visitor{function, typeContext, listOperationsCollection, semTree, userFunctions};
             CodegenVisitorInfo info = definitionPtr->getFunction().getExpression().reduce(visitor);
             builder.CreateRet(info.m_value);
         }

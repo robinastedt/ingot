@@ -23,6 +23,18 @@ namespace ingot::ast
         return m_type;
     }
 
+    size_t
+    Function::findArgumentIndex(const std::string& name) const {
+        size_t index = 0;
+        for (const std::string& arg : m_arguments) {
+            if (arg == name) {
+                return index;
+            }
+            ++index;
+        }
+        return -1;
+    }
+
     std::ostream& operator<<(std::ostream& str, const Function& function) {
         str << function.m_type << ":(";
         bool first = true;
