@@ -74,7 +74,7 @@ namespace ingot::semantics
             ast::Type retType = function.getFunctionType().getReturnType();
             if (exprType != retType) {
                 std::stringstream ss;
-                ss << "expression type '" << exprType << "' does not match function's return type: '" << retType << "'";
+                ss << "expression '" << expr << "' of type '" << exprType << "' does not match function's return type: '" << retType << "'";
                 throw SemanticError(ss.str(), expr.getLocation());
             }
         }
