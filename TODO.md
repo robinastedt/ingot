@@ -5,6 +5,7 @@ Do we want this?
 * We want to use a integer literal and specify other size than 64 bit.
 * Could be useful for i8 without using characters, if we want 8 bit numbers.
 * Same with 16 or 32 bit etc.
+* Partly implemented now since we deduce type of integer literals by their usage
 
 # Syntactic sugar for i8 literals
 eg 'a', 'b'.
