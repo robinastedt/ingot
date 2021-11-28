@@ -7,9 +7,6 @@ Do we want this?
 * Same with 16 or 32 bit etc.
 * Partly implemented now since we deduce type of integer literals by their usage
 
-# Syntactic sugar for i8 literals
-eg 'a', 'b'.
-
 # Syntax for list literals
 * Make list an expression type.
 * Support list literals, eg [1, 2, 3].
