@@ -20,3 +20,6 @@ eg 'a', 'b'.
 * A FunctionCall should hold a IdentifierReference instead of a string directly
 * Make Function an Expression and FunctionType a Type
 * When resolving IdentifierReference first look for local scope arguments and then if not shadowed, look at global functions
+
+# Handle memory clean up for lists
+Current implementation is garbage and leaks everything.
