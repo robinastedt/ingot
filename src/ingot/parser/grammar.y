@@ -55,8 +55,10 @@
 %nterm <ast::Expression>                expr
 %nterm <std::vector<ast::Expression>>   exprs
 %nterm <ast::Function>                  fun
+%nterm <std::vector<std::string>>       maybeArgs
 %nterm <std::vector<std::string>>       args
 %nterm <ast::FunctionType>              funtype
+%nterm <std::vector<ast::Type>>         maybeArgtypes
 %nterm <std::vector<ast::Type>>         argtypes
 %nterm <ast::Type>                      type
 
@@ -72,16 +74,20 @@ module  : %empty
 
 fundef      : IDENT ASSIGN fun         { $$ = ast::FunctionDefinition{$1, $3}; $$.setLocation(@1 + @3);}
 
-fun         : funtype COLON LPAREN args RPAREN RARROW expr  { $$ = ast::Function($1, $4, $7); $$.setLocation(@1 + @7); }
+fun         : funtype COLON LPAREN maybeArgs RPAREN RARROW expr  { $$ = ast::Function($1, $4, $7); $$.setLocation(@1 + @7); }
 
-funtype     : LPAREN argtypes RPAREN RARROW type  { $$ = ast::FunctionType($5, $2); $$.setLocation(@1 + @5);  }
+funtype     : LPAREN maybeArgtypes RPAREN RARROW type  { $$ = ast::FunctionType($5, $2); $$.setLocation(@1 + @5);  }
 
-args            : %empty                    { $$ = std::vector<std::string>(); }
-                | IDENT                     { $$ = {$1}; }
+
+maybeArgs       : %empty                    { $$ = std::vector<std::string>(); }
+                | args                      { $$ = $1; }
+args            : IDENT                     { $$ = {$1}; }
                 | args COMMA IDENT          { std::vector<std::string> copy = $1; copy.push_back($3); $$ = std::move(copy); }
 
-argtypes        : %empty                    { $$ = std::vector<ast::Type>(); }
-                | type                      { $$ = {$1}; }
+maybeArgtypes   : %empty                    { $$ = std::vector<ast::Type>(); }
+                | argtypes                  { $$ = $1; }
+
+argtypes        : type                      { $$ = {$1}; }
                 | argtypes COMMA type       { std::vector<ast::Type> copy = $1; copy.push_back($3); $$ = std::move(copy); }
 
 exprs           : %empty                    { $$ = std::vector<ast::Expression>(); }
