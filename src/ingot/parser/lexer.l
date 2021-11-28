@@ -1,4 +1,5 @@
 %{
+#include <ingot/Error.hh>
 #include <ingot/parser/Parser.hh>
 #include <ingot/parser/Scanner.hh>
 
@@ -11,13 +12,15 @@
     yylloc->end.column += YYLeng(); \
     
 
-static std::string stringFromToken(const std::string& str);
+static std::string stringFromToken(std::string_view str);
+static char charFromToken(std::string_view str);
 %}
 
 %option c++ interactive noyywrap yylineno nodefault outfile="Scanner.cc"
 
 integer         ([[:digit:]]+)
 typeint         (i{integer})
+char            ('(\\.|[^'\\])')
 
 ident           ([a-zA-Z]+[a-zA-Z0-9]*)
 
@@ -35,10 +38,11 @@ string         (\"(\\.|[^"\\])*\")
 <COMMENT>.          { }
 {whitespace}        { }
 {linebreak}         { yylloc->begin.column = yylloc->end.column = 1; }
+{char}              { yylval->emplace<int64_t>(charFromToken({YYText(), (size_t)YYLeng()})); return Parser::token::INTEGER; }
 {typeint}           { yylval->emplace<int64_t>(strtoll(YYText() + 1, nullptr, 10)); return Parser::token::TYPE_INT; }
 {integer}           { yylval->emplace<int64_t>(strtoll(YYText(), nullptr, 10)); return Parser::token::INTEGER; }
 {ident}             { yylval->emplace<std::string>(YYText()); return Parser::token::IDENT; }
-{string}            { yylval->emplace<std::string>(stringFromToken(YYText())); return Parser::token::STRING; }
+{string}            { yylval->emplace<std::string>(stringFromToken({YYText(), (size_t)YYLeng()})); return Parser::token::STRING; }
 "+"                 { return Parser::token::PLUS; }
 "-"                 { return Parser::token::MINUS; }
 "*"                 { return Parser::token::MULTIPLY; }
@@ -61,26 +65,34 @@ int yyFlexLexer::yylex() {
     throw std::runtime_error("Bad call to yyFlexLexer::yylex()");
 }
 
-static std::string stringFromToken(const std::string& str) {
+static char charFromToken(std::string_view str) {
+    const std::string res = stringFromToken(str);
+    if (res.size() != 1) {
+        throw internal_error("Token is not a single character");
+    }
+    return res[0];
+}
+
+static std::string stringFromToken(std::string_view str) {
     assert(str.size() >= 2);
     std::string result;
     bool escape = false;
-    for (char c : std::string_view(str).substr(1, str.size() - 2)) {
+    for (char c : str.substr(1, str.size() - 2)) {
         if (c == '\\') {
             escape = true;
         } else if (escape) {
             escape = false;
             switch (c) {
-                case 'a':   result += '\a'; break; // 07	Alert (Beep, Bell) (added in C89)[1]
-                case 'b':   result += '\b'; break; //	08	Backspace
-                case 'f':   result += '\f'; break; //	0C	Formfeed Page Break
-                case 'n':   result += '\n'; break; //	0A	Newline (Line Feed); see notes below
-                case 'r':   result += '\r'; break; //	0D	Carriage Return
-                case 't':   result += '\t'; break; //	09	Horizontal Tab
-                case 'v':   result += '\v'; break; //	0B	Vertical Tab
-                case '\\':  result += '\\'; break; //	5C	Backslash
-                case '\'':  result += '\''; break; //	27	Apostrophe or single quotation mark
-                case '\"':  result += '\"'; break; //	22	Double quotation mark
+                case 'a':   result += '\a'; break; //   07 Alert (Beep, Bell) (added in C89)[1]
+                case 'b':   result += '\b'; break; //   08 Backspace
+                case 'f':   result += '\f'; break; //   0C Formfeed Page Break
+                case 'n':   result += '\n'; break; //   0A Newline (Line Feed); see notes below
+                case 'r':   result += '\r'; break; //   0D Carriage Return
+                case 't':   result += '\t'; break; //   09 Horizontal Tab
+                case 'v':   result += '\v'; break; //   0B Vertical Tab
+                case '\\':  result += '\\'; break; //   5C Backslash
+                case '\'':  result += '\''; break; //   27 Apostrophe or single quotation mark
+                case '\"':  result += '\"'; break; //   22 Double quotation mark
                 default: break;; // ignore
             }
         } else {
