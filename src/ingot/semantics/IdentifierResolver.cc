@@ -14,17 +14,17 @@ namespace ingot::semantics
     , m_definitionMap(definitionMap) {}
 
     void
-    IdentifierResolver::operator()(ast::Integer& i) {}
+    IdentifierResolver::operator()(ast::Integer& i, const std::monostate&) {}
 
     void
-    IdentifierResolver::operator()(ast::String& str) {}
+    IdentifierResolver::operator()(ast::String& str, const std::monostate&) {}
 
     void
-    IdentifierResolver::operator()(ast::Operator& op) {
+    IdentifierResolver::operator()(ast::Operator& op, const std::monostate&) {
     }
 
     void
-    IdentifierResolver::operator()(ast::FunctionCall& func) {
+    IdentifierResolver::operator()(ast::FunctionCall& func, const std::monostate&) {
         auto defIt = m_definitionMap.find(func.getName());
         if (defIt == m_definitionMap.end()) {
             throw SemanticError("Function not found: '" + func.getName(), func.getLocation());
@@ -34,7 +34,7 @@ namespace ingot::semantics
     }
 
     void
-    IdentifierResolver::operator()(ast::ArgumentReference& arg) {
+    IdentifierResolver::operator()(ast::ArgumentReference& arg, const std::monostate&) {
         size_t argIndex = m_scopeFunction.findArgumentIndex(arg.getName());
         if (argIndex == -1) {
             throw SemanticError("Argument '" + arg.getName() + "' not found in scope", arg.getLocation());

@@ -5,29 +5,6 @@
 namespace ingot::ast
 {
     void
-    Expression::update(UpdateVisitor&& visitor) {
-        update(visitor);
-    }
-
-    void
-    Expression::update(UpdateVisitor& visitor) {
-        return std::visit(overloaded{
-            [&](auto& expr) { return visitor(expr); },
-            [&](FunctionCall& funcCall) {
-                    for (Expression& argument : funcCall.getArguments()) {
-                        argument.update(visitor);
-                    }
-                    return visitor(funcCall);  
-            },
-            [&](Operator& op) {
-                op.getLhs().update(visitor);
-                op.getRhs().update(visitor);
-                visitor(op);
-            }
-        }, static_cast<ExpressionVariant&>(*this));
-    }
-
-    void
     Expression::setLocation(parser::location location) {
         std::visit(overloaded{
             [](std::monostate&){throw internal_error("Found monostate in expression."); },

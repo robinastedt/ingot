@@ -37,15 +37,27 @@ namespace ingot::ast
             T operator()(const std::monostate&) { throw std::runtime_error("Unexpected monostate in Expression"); }
         };
 
+        template<typename T = std::monostate>
         class UpdateVisitor {
         public:
+            enum class OperatorSide {
+                LEFT,
+                RIGHT
+            };
+            
             virtual ~UpdateVisitor() {}
-            virtual void operator()(Integer& i) = 0;
-            virtual void operator()(String& str) = 0;
-            virtual void operator()(Operator& op) = 0;
-            virtual void operator()(FunctionCall& func) = 0;
-            virtual void operator()(ArgumentReference& arg) = 0;
-            void operator()(const std::monostate&) { throw std::runtime_error("Unexpected monostate in Expression"); }
+            virtual T preop(Operator& op, const T& input, OperatorSide side) {
+                return input;
+            }
+            virtual T preop(FunctionCall& func, const T& input, size_t index) {
+                return input;
+            }
+            virtual void operator()(Integer& i, const T& input) = 0;
+            virtual void operator()(String& str, const T& input) = 0;
+            virtual void operator()(Operator& op, const T& input) = 0;
+            virtual void operator()(FunctionCall& func, const T& input) = 0;
+            virtual void operator()(ArgumentReference& arg, const T& input) = 0;
+            void operator()(const std::monostate&, const T&) { throw std::runtime_error("Unexpected monostate in Expression"); }
         };
 
         template<typename T>
@@ -74,8 +86,32 @@ namespace ingot::ast
             }, static_cast<const ExpressionVariant&>(*this));
         }
 
-        void update(UpdateVisitor&& visitor);
-        void update(UpdateVisitor& visitor);
+    template<typename T = std::monostate>
+    void
+    update(UpdateVisitor<T>& visitor, const T& input = T{}) {
+        return std::visit(overloaded{
+            [&](auto& expr) { return visitor(expr, input); },
+            [&](FunctionCall& funcCall) {
+                    std::vector<Expression>& args = funcCall.getArguments();
+                    size_t numArgs = args.size();
+                    std::vector<T> outputs;
+                    for (size_t i = 0; i < numArgs; ++i) {
+                        outputs.push_back(visitor.preop(funcCall, input, i));
+                    }
+                    for (size_t i = 0; i < numArgs; ++i) {
+                        args[i].update(visitor, outputs[i]);
+                    }
+                    return visitor(funcCall, input);
+            },
+            [&](Operator& op) {
+                T outputLeft = visitor.preop(op, input, UpdateVisitor<T>::OperatorSide::LEFT);
+                T outputRight = visitor.preop(op, input, UpdateVisitor<T>::OperatorSide::RIGHT);
+                op.getLhs().update(visitor, outputLeft);
+                op.getRhs().update(visitor, outputRight);
+                visitor(op, input);
+            }
+        }, static_cast<ExpressionVariant&>(*this));
+    }
 
         void setLocation(ingot::parser::location location);
         const parser::location& getLocation() const;

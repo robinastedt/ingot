@@ -52,11 +52,8 @@ namespace ingot::codegen
         llvm::Type*& llvmtype = m_typeMap[type];
         if (llvmtype == nullptr) {
             switch (type.getVariant()) {
-                case ast::Type::Variant::i8: {
-                    llvmtype = llvm::IntegerType::get(m_builder.getContext(), 8);
-                } break;
-                case ast::Type::Variant::i64: {
-                    llvmtype = llvm::IntegerType::get(m_builder.getContext(), 64);
+                case ast::Type::Variant::Integer: {
+                    llvmtype = llvm::IntegerType::get(m_builder.getContext(), type.getSize());
                 } break;
                 case ast::Type::Variant::List: {
                     ast::Type subtype = type.getSubtype();

@@ -1,6 +1,19 @@
 
-add = (i64, i64, [i8]) -> i64 : (lhs, rhs, str) -> lhs + rhs
 
 hello = () -> [i8] : () -> "Hello world and a very long good bye 💩"
+const = () -> i33 : () -> 4
 
-main = () -> i64 : () -> add(1, 2, hello())
+test = () -> i8 : () -> 127
+
+# Right now i{integer} looks like an identifier, but is in practice a reserved word
+# Do we want all types to start with capital letter?
+# normalName = (i5) -> i5 : (i5) -> i5
+# i5 = (i5) -> i5 : (i5) -> i5
+
+# Test shadowing. Right now rhs and rhs() looks like different identifiers
+# We want to be able to pass functions as arguments and used as values, so this should not work, but right now it does
+rhs = () -> i33 : () -> 0
+
+
+add = (i33, i33) -> i33 : (lhs, rhs) -> lhs + 2 + rhs + rhs() + const()
+main = () -> i33 : () -> add(1, 3)

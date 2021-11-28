@@ -37,10 +37,13 @@ int main(int argc, char** argv) {
         semTree.resolve();
     } catch (const ingot::semantics::SemanticError& err) {
         if constexpr (DEBUG) {
-            std::cerr << ast << std::endl;
+            std::cerr << semTree << std::endl;
         }
         std::cerr << filename << ":" << err.lineno() << ":" << err.colno() << ": " << err.what() << std::endl;
         return 1;
+    }
+    if constexpr (DEBUG) {
+        std::cerr << semTree << std::endl;
     }
     ingot::codegen::Generator generator;
     generator.run(semTree);

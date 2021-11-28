@@ -11,17 +11,17 @@ namespace ingot::ast
     public:
         enum class Variant {
             Unspecified,
-            i8,
-            i64,
+            Integer,
             List
         };
     private:
         Variant m_variant;
-        std::unique_ptr<Type> m_subtype;
+        std::unique_ptr<Type> m_subtype;  // Used by List
+        size_t m_size;  // Used by Integer
 
         friend std::ostream& operator<<(std::ostream& str, const Type& type);
 
-        Type(Variant variant, std::unique_ptr<Type> subtype = nullptr);
+        Type(Variant variant, std::unique_ptr<Type> subtype, size_t size);
 
     public:
         Type();
@@ -29,9 +29,10 @@ namespace ingot::ast
         Type& operator=(const Type& other);
         Type getSubtype() const;
         Variant getVariant() const;
+        size_t getSize() const;
+        void setSize(size_t size);
 
-        static Type int8();
-        static Type int64();
+        static Type integer(size_t size);
         static Type list(const Type& subtype);
         
         

@@ -8,7 +8,7 @@ namespace ingot::ast
 
     Type
     String::getType() {
-        return Type::list(Type::int8());
+        return Type::list(Type::integer(8));
     }
 
     const std::string&

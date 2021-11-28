@@ -44,10 +44,9 @@ namespace ingot::codegen
         llvm::Function* printfFunc = llvm::Function::Create(printfPrototype, llvm::Function::ExternalLinkage, "printf", mainModule.get());
 
         // print_string declaration
-        ast::Type stringType = ast::Type::list(ast::Type::int8());
-        llvm::Type* stringLLVMType = typeContext.getLLVMType(stringType);
+        llvm::Type* stringLLVMType = typeContext.getLLVMType(ast::String::getType());
         llvm::PointerType* stringPtrLLVMType = llvm::PointerType::get(stringLLVMType, 0);
-        ListOperations stringOperations = listOperationsCollection.get(ast::Type::list(ast::Type::int8()));
+        ListOperations stringOperations = listOperationsCollection.get(ast::String::getType());
         llvm::FunctionType* printStringPrototype = llvm::FunctionType::get(builder.getVoidTy(), {stringPtrLLVMType}, false);
         llvm::Function* printStringFunc = llvm::Function::Create(printStringPrototype, llvm::Function::InternalLinkage, "ingot_print_string", mainModule.get());
 
@@ -95,7 +94,7 @@ namespace ingot::codegen
             builder.CreateRetVoid();
 
             builder.SetInsertPoint(printChunkBlock);
-            llvm::ArrayType* arrayType = typeContext.getLLVMTypeForListArrayMember(stringType);
+            llvm::ArrayType* arrayType = typeContext.getLLVMTypeForListArrayMember(ast::String::getType());
             llvm::Value* arrayLength = llvm::ConstantInt::get(counterType, arrayType->getArrayNumElements());
             llvm::Value* index = builder.CreateSub(arrayLength, inputCount, "inputIndex");
             llvm::Value* inputArrayPtr = builder.CreateStructGEP(inputPtr, 1, "inputArrayPtr");
@@ -129,7 +128,7 @@ namespace ingot::codegen
             // Main defintion
             llvm::BasicBlock *mainBody = llvm::BasicBlock::Create(m_context, "entry", mainFunc);
             builder.SetInsertPoint(mainBody);
-            if (userMainRetType == ast::Integer::getType()) {
+            if (userMainRetType.getVariant() == ast::Type::Variant::Integer) {
                 std::string formatStr = "%lli";
                 llvm::Constant* formatStrConstant = builder.CreateGlobalStringPtr(formatStr);
                 llvm::CallInst* userMainCall = builder.CreateCall(userMain);

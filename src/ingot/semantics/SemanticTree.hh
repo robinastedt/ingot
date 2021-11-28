@@ -9,6 +9,7 @@ namespace ingot::semantics
         ast::AST m_ast;
         std::map<std::string, const ast::FunctionDefinition&> m_definitionMap;
 
+        friend std::ostream& operator<<(std::ostream& str, const SemanticTree& tree);
     public:
         SemanticTree(ast::AST ast);
 
@@ -21,4 +22,6 @@ namespace ingot::semantics
 
         const_iterator findDefinition(const std::string& name) const;
     };
+
+    std::ostream& operator<<(std::ostream& str, const SemanticTree& tree);
 } // namespace ingot::semantics

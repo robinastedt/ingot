@@ -1,6 +1,7 @@
 #include "SemanticTree.hh"
 
 #include <ingot/semantics/IdentifierResolver.hh>
+#include <ingot/semantics/IntegerTypeResolver.hh>
 #include <ingot/semantics/TypeResolver.hh>
 #include <ingot/semantics/SemanticError.hh>
 
@@ -30,6 +31,7 @@ namespace ingot::semantics
     void
     SemanticTree::resolve() {
         
+        // Check multiple function declarations
         std::map<std::string, const ast::FunctionDefinition*> seenFunctions;
         for (ast::FunctionDefinition& def : m_ast) {
             if (auto it = seenFunctions.find(def.getName()); it != seenFunctions.end()) {
@@ -44,6 +46,8 @@ namespace ingot::semantics
             seenFunctions.emplace(std::make_pair(def.getName(), &def));
         }
 
+        // Resolve indentifiers
+        // Update pointers in ArgumentReference and FunctionCall
         for (ast::FunctionDefinition& def : m_ast) {
             ast::Function& function = def.getFunction();
             ast::Expression& expr = function.getExpression();
@@ -51,6 +55,17 @@ namespace ingot::semantics
             expr.update(identifierResolver);
         }
 
+        // Resolve types of integer literals
+        IntegerTypeResolver integerResolver;
+        for (ast::FunctionDefinition& def : m_ast) {
+            ast::Function& function = def.getFunction();
+            ast::Expression& expr = function.getExpression();
+            ast::Type retType = function.getFunctionType().getReturnType();
+            size_t retSize = retType.getVariant() == ast::Type::Variant::Integer ? retType.getSize() : 0;
+            expr.update(integerResolver, retSize);
+        }
+
+        // Check that types match
         TypeResolver typeResolver;
         for (ast::FunctionDefinition& def : m_ast) {
             ast::Function& function = def.getFunction();
@@ -80,6 +95,10 @@ namespace ingot::semantics
     SemanticTree::findDefinition(const std::string& name) const {
         auto defMapIt = m_definitionMap.find(name);
         return defMapIt != m_definitionMap.end() ? const_iterator{&defMapIt->second} : end();
+    }
+
+    std::ostream& operator<<(std::ostream& str, const SemanticTree& tree) {
+        return str << tree.m_ast;
     }
 
 } // namespace ingot::semantics

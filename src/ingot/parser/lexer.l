@@ -17,6 +17,7 @@ static std::string stringFromToken(const std::string& str);
 %option c++ interactive noyywrap yylineno nodefault outfile="Scanner.cc"
 
 integer         ([[:digit:]]+)
+typeint         (i{integer})
 
 ident           ([a-zA-Z]+[a-zA-Z0-9]*)
 
@@ -34,8 +35,7 @@ string         (\"(\\.|[^"\\])*\")
 <COMMENT>.          { }
 {whitespace}        { }
 {linebreak}         { yylloc->begin.column = yylloc->end.column = 1; }
-"i8"                { return Parser::token::TYPE_INT8; }
-"i64"               { return Parser::token::TYPE_INT64; }
+{typeint}           { yylval->emplace<int64_t>(strtoll(YYText() + 1, nullptr, 10)); return Parser::token::TYPE_INT; }
 {integer}           { yylval->emplace<int64_t>(strtoll(YYText(), nullptr, 10)); return Parser::token::INTEGER; }
 {ident}             { yylval->emplace<std::string>(YYText()); return Parser::token::IDENT; }
 {string}            { yylval->emplace<std::string>(stringFromToken(YYText())); return Parser::token::STRING; }

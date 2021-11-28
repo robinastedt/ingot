@@ -47,8 +47,7 @@
 %token                      COMMA
 %token                      LBRACKET
 %token                      RBRACKET
-%token                      TYPE_INT8
-%token                      TYPE_INT64
+%token <int64_t>            TYPE_INT
 %token <std::string>        ERROR
 
 
@@ -102,8 +101,7 @@ expr    : INTEGER                   { $$ = ast::Integer($1); $$.setLocation(@1);
         | LPAREN expr RPAREN        { $$ = $2;  $$.setLocation(@2); }
         ;
 
-type    : TYPE_INT8                 { $$ = ast::Type::int8(); $$.setLocation(@1); }
-        | TYPE_INT64                { $$ = ast::Type::int64(); $$.setLocation(@1); }
+type    : TYPE_INT                 { $$ = ast::Type::integer($1); $$.setLocation(@1); }
         | LBRACKET type RBRACKET    { $$ = ast::Type::list($2); $$.setLocation(@1 + @3); }
 %%
  

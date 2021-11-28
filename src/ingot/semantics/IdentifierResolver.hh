@@ -7,7 +7,7 @@
 
 namespace ingot::semantics
 {
-    class IdentifierResolver : public ast::Expression::UpdateVisitor {
+    class IdentifierResolver : public ast::Expression::UpdateVisitor<> {
         using DefMap = std::map<std::string, const ast::FunctionDefinition&>;
 
         const ast::Function& m_scopeFunction;
@@ -15,10 +15,10 @@ namespace ingot::semantics
     public:
         IdentifierResolver(const ast::Function& scopeFunction, const DefMap& definitionMap);
 
-        void operator()(ast::Integer& i) override;
-        void operator()(ast::String& str) override;
-        void operator()(ast::Operator& op) override;
-        void operator()(ast::FunctionCall& func) override;
-        void operator()(ast::ArgumentReference& arg) override;
+        void operator()(ast::Integer& i, const std::monostate&) override;
+        void operator()(ast::String& str, const std::monostate&) override;
+        void operator()(ast::Operator& op, const std::monostate&) override;
+        void operator()(ast::FunctionCall& func, const std::monostate&) override;
+        void operator()(ast::ArgumentReference& arg, const std::monostate&) override;
     };
 } // namespace ingot::semantics

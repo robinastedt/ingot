@@ -27,7 +27,8 @@ namespace ingot::codegen
 
     CodegenVisitorInfo
     CodegenVisitor::operator()(const ast::Integer& i) {
-        return {llvm::ConstantInt::get(m_i64, i.getValue(), true), i.getType()};
+        
+        return {llvm::ConstantInt::get(m_builder.getIntNTy(i.getType().getSize()), i.getValue()), i.getType()};
     }
 
     CodegenVisitorInfo
@@ -54,7 +55,7 @@ namespace ingot::codegen
     CodegenVisitor::operator()(const ast::Operator& op, CodegenVisitorInfo lhsResult, CodegenVisitorInfo rhsResult) {
         assert(lhsResult.m_type == rhsResult.m_type);
         ast::Type type = lhsResult.m_type;
-        if (type.getVariant() == ast::Type::Variant::i64) {
+        if (type.getVariant() == ast::Type::Variant::Integer) {
             switch (op.getVariant()) {
                 case ast::Operator::Variant::Add: return {m_builder.CreateAdd(lhsResult.m_value, rhsResult.m_value, "tmpadd"), type};
                 case ast::Operator::Variant::Sub: {
