@@ -1,7 +1,6 @@
 #include "SemanticTree.hh"
 
 #include <ingot/semantics/IdentifierResolver.hh>
-#include <ingot/semantics/IntegerTypeResolver.hh>
 #include <ingot/semantics/TypeResolver.hh>
 #include <ingot/semantics/SemanticError.hh>
 
@@ -55,23 +54,15 @@ namespace ingot::semantics
             expr.traverse(identifierResolver);
         }
 
-        // Resolve types of integer literals
-        IntegerTypeResolver integerResolver;
+        // Resolve size of integer constants and check that types match
+        TypeResolver typeResolver;
         for (ast::FunctionDefinition& def : m_ast) {
             ast::Function& function = def.getFunction();
             ast::Expression& expr = function.getExpression();
             ast::Type retType = function.getFunctionType().getReturnType();
             size_t retSize = retType.getVariant() == ast::Type::Variant::Integer ? retType.getSize() : 0;
-            expr.traverse(integerResolver, retSize);
-        }
-
-        // Check that types match
-        TypeResolver typeResolver;
-        for (ast::FunctionDefinition& def : m_ast) {
-            ast::Function& function = def.getFunction();
-            ast::Expression& expr = function.getExpression();
-            ast::Type exprType = expr.traverse(typeResolver);
-            ast::Type retType = function.getFunctionType().getReturnType();
+            ast::Type exprType = expr.traverse(typeResolver, retSize);
+            
             if (exprType != retType) {
                 std::stringstream ss;
                 ss << "expression '" << expr << "' of type '" << exprType << "' does not match function's return type: '" << retType << "'";
