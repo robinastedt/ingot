@@ -10,7 +10,7 @@ namespace ingot::semantics
     TypeResolver::TypeResolver() {}
 
     ast::Type
-    TypeResolver::preop(ast::List& list, ast::Type input, size_t index) const {
+    TypeResolver::preop(ast::List& list, ast::Type input, size_t index) {
         if (input.getVariant() != ast::Type::Variant::List) {
             std::stringstream ss;
             ss << "Expression '" << list << "' is a list and does not match expected type '" << input << "'.";
@@ -20,17 +20,17 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::preop(ast::Operator&, ast::Type input, OperatorSide) const {
+    TypeResolver::preop(ast::Operator&, ast::Type input, OperatorSide) {
         return input;
     }
 
     ast::Type
-    TypeResolver::preop(ast::FunctionCall& func, ast::Type, size_t index) const {
+    TypeResolver::preop(ast::FunctionCall& func, ast::Type, size_t index) {
         return func.getFunctionType().getArgumentType(index);
     }
 
     ast::Type
-    TypeResolver::preop(ast::Ternary&, ast::Type input, TernaryPosition position) const {
+    TypeResolver::preop(ast::Ternary&, ast::Type input, TernaryPosition position) {
         switch (position) {
             case TernaryPosition::CONDITION: return ast::Type::integer(1);
             case TernaryPosition::TRUE_BRANCH: return input;
@@ -59,7 +59,7 @@ namespace ingot::semantics
     } // namespace
 
     ast::Type
-    TypeResolver::postop(ast::Integer& i, ast::Type requiredType) const {
+    TypeResolver::postop(ast::Integer& i, ast::Type requiredType) {
         if (requiredType.getVariant() != ast::Type::Variant::Integer) {
             std::stringstream ss;
             ss << "Expression '" << i << "' "
@@ -82,7 +82,7 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::postop(ast::List& list, const std::vector<ast::Type>& elemResults, ast::Type requiredType) const {
+    TypeResolver::postop(ast::List& list, const std::vector<ast::Type>& elemResults, ast::Type requiredType) {
         if (requiredType.getVariant() != ast::Type::Variant::List) {
             std::stringstream ss;
             ss << "Expression '" << list << "' is a list and does not match expected type '" << requiredType << "'.";
@@ -104,7 +104,7 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::postop(ast::Operator& op, const std::pair<ast::Type, ast::Type>& results, ast::Type) const {
+    TypeResolver::postop(ast::Operator& op, const std::pair<ast::Type, ast::Type>& results, ast::Type) {
         const ast::Type& lhsResult = results.first;
         const ast::Type& rhsResult = results.second;
         if (lhsResult != rhsResult) {
@@ -116,7 +116,7 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::postop(ast::FunctionCall& func, const std::vector<ast::Type>& args, ast::Type) const {
+    TypeResolver::postop(ast::FunctionCall& func, const std::vector<ast::Type>& args, ast::Type) {
         const ast::FunctionType& functionType = func.getFunctionType();
         const std::vector<ast::Type>& declTypes = functionType.getArgumentTypes();
         if (declTypes.size() != args.size()) {
@@ -142,12 +142,12 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::postop(ast::ArgumentReference& arg, ast::Type) const {
+    TypeResolver::postop(ast::ArgumentReference& arg, ast::Type) {
         return arg.getType();
     }
 
     ast::Type
-    TypeResolver::postop(ast::Ternary& ternary, const std::tuple<ast::Type, ast::Type, ast::Type>& results, ast::Type requiredType) const {
+    TypeResolver::postop(ast::Ternary& ternary, const std::tuple<ast::Type, ast::Type, ast::Type>& results, ast::Type requiredType) {
         const ast::Type& condType = std::get<0>(results);
         const ast::Type& trueBranchType = std::get<1>(results);
         const ast::Type& falseBranchType = std::get<2>(results);

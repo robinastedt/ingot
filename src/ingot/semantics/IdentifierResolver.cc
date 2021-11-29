@@ -14,20 +14,20 @@ namespace ingot::semantics
     , m_definitionMap(definitionMap) {}
 
     std::monostate
-    IdentifierResolver::postop(ast::Integer& i, std::monostate) const { return {}; }
+    IdentifierResolver::postop(ast::Integer& i, std::monostate) { return {}; }
 
     std::monostate
-    IdentifierResolver::postop(ast::Operator& op, const std::pair<std::monostate, std::monostate>&, std::monostate) const {
+    IdentifierResolver::postop(ast::Operator& op, const std::pair<std::monostate, std::monostate>&, std::monostate) {
         return {}; 
     }
 
     std::monostate
-    IdentifierResolver::postop(ast::List& list, const std::vector<std::monostate>& elemResults, std::monostate) const {
+    IdentifierResolver::postop(ast::List& list, const std::vector<std::monostate>& elemResults, std::monostate) {
         return {};
     }
 
     std::monostate
-    IdentifierResolver::postop(ast::FunctionCall& func, const std::vector<std::monostate>&, std::monostate) const {
+    IdentifierResolver::postop(ast::FunctionCall& func, const std::vector<std::monostate>&, std::monostate) {
         auto defIt = m_definitionMap.find(func.getName());
         if (defIt == m_definitionMap.end()) {
             throw SemanticError("Function not found: '" + func.getName(), func.getLocation());
@@ -38,7 +38,7 @@ namespace ingot::semantics
     }
 
     std::monostate
-    IdentifierResolver::postop(ast::ArgumentReference& arg, std::monostate) const {
+    IdentifierResolver::postop(ast::ArgumentReference& arg, std::monostate) {
         size_t argIndex = m_scopeFunction.findArgumentIndex(arg.getName());
         if (argIndex == -1) {
             throw SemanticError("Argument '" + arg.getName() + "' not found in scope", arg.getLocation());
@@ -50,7 +50,7 @@ namespace ingot::semantics
     }
 
     std::monostate
-    IdentifierResolver::postop(ast::Ternary& ternary, const std::tuple<std::monostate, std::monostate, std::monostate>& results, std::monostate) const {
+    IdentifierResolver::postop(ast::Ternary& ternary, const std::tuple<std::monostate, std::monostate, std::monostate>& results, std::monostate) {
         return {};
     }
 

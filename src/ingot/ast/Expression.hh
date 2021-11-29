@@ -39,25 +39,25 @@ namespace ingot::ast
                 FALSE_BRANCH
             };
             virtual ~Visitor() {}
-            virtual INPUT preop(List& func, INPUT input, size_t index) const {
+            virtual INPUT preop(List& func, INPUT input, size_t index) {
                 return input;
             }
-            virtual INPUT preop(Operator& op, INPUT input, OperatorSide side) const {
+            virtual INPUT preop(Operator& op, INPUT input, OperatorSide side) {
                 return input;
             }
-            virtual INPUT preop(FunctionCall& func, INPUT input, size_t index) const {
+            virtual INPUT preop(FunctionCall& func, INPUT input, size_t index) {
                 return input;
             }
-            virtual INPUT preop(Ternary& func, INPUT input, TernaryPosition position) const {
+            virtual INPUT preop(Ternary& func, INPUT input, TernaryPosition position) {
                 return input;
             }
-            virtual OUTPUT postop(Integer& i, INPUT input) const = 0;
-            virtual OUTPUT postop(List& str, const std::vector<OUTPUT>& elemResults, INPUT input) const = 0;
-            virtual OUTPUT postop(Operator& op, const std::pair<OUTPUT, OUTPUT>& argResults, INPUT input) const = 0;
-            virtual OUTPUT postop(FunctionCall& func, const std::vector<OUTPUT>& argResults, INPUT input) const = 0;
-            virtual OUTPUT postop(ArgumentReference& arg, INPUT input) const = 0;
-            virtual OUTPUT postop(Ternary& ternary, const std::tuple<OUTPUT, OUTPUT, OUTPUT>& results, INPUT input) const = 0;
-            OUTPUT postop(std::monostate&, INPUT input) const { throw std::runtime_error("Unexpected monostate in Expression"); }
+            virtual OUTPUT postop(Integer& i, INPUT input) = 0;
+            virtual OUTPUT postop(List& str, const std::vector<OUTPUT>& elemResults, INPUT input) = 0;
+            virtual OUTPUT postop(Operator& op, const std::pair<OUTPUT, OUTPUT>& argResults, INPUT input) = 0;
+            virtual OUTPUT postop(FunctionCall& func, const std::vector<OUTPUT>& argResults, INPUT input) = 0;
+            virtual OUTPUT postop(ArgumentReference& arg, INPUT input) = 0;
+            virtual OUTPUT postop(Ternary& ternary, const std::tuple<OUTPUT, OUTPUT, OUTPUT>& results, INPUT input) = 0;
+            OUTPUT postop(std::monostate&, INPUT input) { throw std::runtime_error("Unexpected monostate in Expression"); }
         };
 
         template<typename OUTPUT = std::monostate, typename INPUT = std::monostate>
@@ -73,30 +73,30 @@ namespace ingot::ast
                 FALSE_BRANCH
             };
             virtual ~ConstVisitor() {}
-            virtual INPUT preop(const List& func, INPUT input, size_t index) const {
+            virtual INPUT preop(const List& func, INPUT input, size_t index) {
                 return input;
             }
-            virtual INPUT preop(const Operator& op, INPUT input, OperatorSide side) const {
+            virtual INPUT preop(const Operator& op, INPUT input, OperatorSide side) {
                 return input;
             }
-            virtual INPUT preop(const FunctionCall& func, INPUT input, size_t index) const  {
+            virtual INPUT preop(const FunctionCall& func, INPUT input, size_t index)  {
                 return input;
             }
-            virtual INPUT preop(const Ternary& func, INPUT input, TernaryPosition position) const {
+            virtual INPUT preop(const Ternary& func, INPUT input, TernaryPosition position) {
                 return input;
             }
-            virtual OUTPUT postop(const Integer& i, INPUT input) const  = 0;
-            virtual OUTPUT postop(const List& str, const std::vector<OUTPUT>& elemResults, INPUT input) const  = 0;
-            virtual OUTPUT postop(const Operator& op, const std::pair<OUTPUT, OUTPUT>& argResults, INPUT input) const  = 0;
-            virtual OUTPUT postop(const FunctionCall& func, const std::vector<OUTPUT>& argResults, INPUT input) const  = 0;
-            virtual OUTPUT postop(const ArgumentReference& arg, INPUT input) const  = 0;
-            virtual OUTPUT postop(const Ternary& ternary, const std::tuple<OUTPUT, OUTPUT, OUTPUT>& results, INPUT input) const = 0;
-            OUTPUT postop(const std::monostate&, INPUT input) const  { throw std::runtime_error("Unexpected monostate in Expression"); }
+            virtual OUTPUT postop(const Integer& i, INPUT input)  = 0;
+            virtual OUTPUT postop(const List& str, const std::vector<OUTPUT>& elemResults, INPUT input)  = 0;
+            virtual OUTPUT postop(const Operator& op, const std::pair<OUTPUT, OUTPUT>& argResults, INPUT input)  = 0;
+            virtual OUTPUT postop(const FunctionCall& func, const std::vector<OUTPUT>& argResults, INPUT input)  = 0;
+            virtual OUTPUT postop(const ArgumentReference& arg, INPUT input)  = 0;
+            virtual OUTPUT postop(const Ternary& ternary, const std::tuple<OUTPUT, OUTPUT, OUTPUT>& results, INPUT input) = 0;
+            OUTPUT postop(const std::monostate&, INPUT input) { throw std::runtime_error("Unexpected monostate in Expression"); }
         };
 
         template<typename OUTPUT = std::monostate, typename INPUT = std::monostate>
         OUTPUT
-        traverse(const Visitor<OUTPUT, INPUT>& visitor, INPUT input = INPUT{}) {
+        traverse(Visitor<OUTPUT, INPUT>& visitor, INPUT input = INPUT{}) {
             return std::visit(overloaded{
                 [&](auto& expr) { return visitor.postop(expr, input); },
                 [&](FunctionCall& funcCall) {
@@ -135,7 +135,7 @@ namespace ingot::ast
 
         template<typename OUTPUT = std::monostate, typename INPUT = std::monostate>
         OUTPUT
-        traverse(const ConstVisitor<OUTPUT, INPUT>& visitor, INPUT input = INPUT{}) const {
+        traverse(ConstVisitor<OUTPUT, INPUT>& visitor, INPUT input = INPUT{}) const {
             return std::visit(overloaded{
                 [&](const auto& expr) { return visitor.postop(expr, input); },
                 [&](const FunctionCall& funcCall) {

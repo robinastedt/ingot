@@ -27,7 +27,7 @@ namespace ingot::codegen
     , m_ternaryContextStack() {}
 
     std::monostate
-    CodegenVisitor::preop(const ast::Ternary& func, std::monostate input, TernaryPosition position) const {
+    CodegenVisitor::preop(const ast::Ternary& func, std::monostate input, TernaryPosition position) {
         switch (position) {
             case TernaryPosition::CONDITION: {
                 std::string twineSuffix = std::to_string(m_ternaryContextStack.size());
@@ -48,12 +48,12 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::postop(const ast::Integer& i, std::monostate) const {
+    CodegenVisitor::postop(const ast::Integer& i, std::monostate) {
         return {m_builder.GetInsertBlock(), llvm::ConstantInt::get(m_builder.getIntNTy(i.getType().getSize()), i.getValue()), i.getType()};
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::postop(const ast::List& list, const std::vector<CodegenVisitorInfo>& results, std::monostate) const {
+    CodegenVisitor::postop(const ast::List& list, const std::vector<CodegenVisitorInfo>& results, std::monostate) {
         const ListOperations& listOperations = m_listOperationsCollection.get(list.getType());
         llvm::Function* emptyFunction = listOperations.getEmptyFunction();
         llvm::Function* appendFunction = listOperations.getAppendFunction();
@@ -71,7 +71,7 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::postop(const ast::Operator& op, const std::pair<CodegenVisitorInfo, CodegenVisitorInfo> &results, std::monostate) const {
+    CodegenVisitor::postop(const ast::Operator& op, const std::pair<CodegenVisitorInfo, CodegenVisitorInfo> &results, std::monostate) {
         const CodegenVisitorInfo& lhsResult = results.first;
         const CodegenVisitorInfo& rhsResult = results.second;
         assert(lhsResult.m_type == rhsResult.m_type);
@@ -105,7 +105,7 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::postop(const ast::FunctionCall& funcCall, const std::vector<CodegenVisitorInfo>& results, std::monostate) const {
+    CodegenVisitor::postop(const ast::FunctionCall& funcCall, const std::vector<CodegenVisitorInfo>& results, std::monostate) {
         auto defIt = m_semanticTree.findDefinition(funcCall.getName());
         if (defIt == m_semanticTree.end()) {
             throw internal_error("Could not find function definition in semantic tree: " + funcCall.getName());
@@ -126,12 +126,12 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::postop(const ast::ArgumentReference& arg, std::monostate) const {
+    CodegenVisitor::postop(const ast::ArgumentReference& arg, std::monostate) {
         return {m_builder.GetInsertBlock(), m_scopeFunction->getArg(arg.getIndex()), arg.getType()};
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::postop(const ast::Ternary& ternary, const std::tuple<CodegenVisitorInfo, CodegenVisitorInfo, CodegenVisitorInfo>& results, std::monostate) const {
+    CodegenVisitor::postop(const ast::Ternary& ternary, const std::tuple<CodegenVisitorInfo, CodegenVisitorInfo, CodegenVisitorInfo>& results, std::monostate) {
         const CodegenVisitorInfo& condInfo = std::get<0>(results);
         const CodegenVisitorInfo& trueBranchInfo = std::get<1>(results);
         const CodegenVisitorInfo& falseBranchInfo = std::get<2>(results);

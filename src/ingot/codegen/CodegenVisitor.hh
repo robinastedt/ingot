@@ -34,7 +34,7 @@ namespace ingot::codegen
         ListOperations::Collection& m_listOperationsCollection;
         const semantics::SemanticTree& m_semanticTree;
         const std::map<const ast::FunctionDefinition*, llvm::Function*>& m_functionMap;
-        mutable std::stack<TernaryContext> m_ternaryContextStack;
+        std::stack<TernaryContext> m_ternaryContextStack;
     public:
         CodegenVisitor(
             llvm::Function* scopeFunction,
@@ -43,12 +43,12 @@ namespace ingot::codegen
             const semantics::SemanticTree& semanticTree,
             const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
         );
-        std::monostate preop(const ast::Ternary& func, std::monostate input, TernaryPosition position) const override;
-        CodegenVisitorInfo postop(const ast::Integer& i, std::monostate) const override;
-        CodegenVisitorInfo postop(const ast::List& list, const std::vector<CodegenVisitorInfo>& results, std::monostate) const override;
-        CodegenVisitorInfo postop(const ast::Operator& op, const std::pair<CodegenVisitorInfo,CodegenVisitorInfo>& results, std::monostate) const override;
-        CodegenVisitorInfo postop(const ast::FunctionCall& func, const std::vector<CodegenVisitorInfo>& results, std::monostate) const override;
-        CodegenVisitorInfo postop(const ast::ArgumentReference& arg, std::monostate) const override;
-        CodegenVisitorInfo postop(const ast::Ternary& ternary, const std::tuple<CodegenVisitorInfo, CodegenVisitorInfo, CodegenVisitorInfo>& results, std::monostate) const override;
+        std::monostate preop(const ast::Ternary& func, std::monostate input, TernaryPosition position) override;
+        CodegenVisitorInfo postop(const ast::Integer& i, std::monostate) override;
+        CodegenVisitorInfo postop(const ast::List& list, const std::vector<CodegenVisitorInfo>& results, std::monostate) override;
+        CodegenVisitorInfo postop(const ast::Operator& op, const std::pair<CodegenVisitorInfo,CodegenVisitorInfo>& results, std::monostate) override;
+        CodegenVisitorInfo postop(const ast::FunctionCall& func, const std::vector<CodegenVisitorInfo>& results, std::monostate) override;
+        CodegenVisitorInfo postop(const ast::ArgumentReference& arg, std::monostate) override;
+        CodegenVisitorInfo postop(const ast::Ternary& ternary, const std::tuple<CodegenVisitorInfo, CodegenVisitorInfo, CodegenVisitorInfo>& results, std::monostate) override;
     };
 } // namespace ingot::codegen
