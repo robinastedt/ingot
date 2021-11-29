@@ -37,6 +37,11 @@ namespace ingot::ast
         return m_type;
     }
 
+    bool
+    List::operator==(const List& other) const {
+        return m_type == other.m_type && m_elements == other.m_elements;
+    }
+
     std::ostream& operator<<(std::ostream& str, const List& list) {
         str << "[";
         bool first = true;

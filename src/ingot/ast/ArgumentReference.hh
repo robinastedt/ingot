@@ -26,6 +26,8 @@ namespace ingot::ast
         size_t getIndex() const;
 
         void resolve(const Type& type, const Function& scope, size_t index);
+
+        bool operator==(const ArgumentReference& other) const;
     };
 
     std::ostream& operator<<(std::ostream& str, const ArgumentReference& arg);

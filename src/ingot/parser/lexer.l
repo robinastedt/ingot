@@ -51,6 +51,8 @@ string         (\"(\\.|[^"\\])*\")
 "*"                 { return Parser::token::MULTIPLY; }
 "/"                 { return Parser::token::DIVIDE; }
 "%"                 { return Parser::token::MODULO; }
+"=="                { return Parser::token::EQUALITY; }
+"!="                { return Parser::token::INEQUALITY; }
 "("                 { return Parser::token::LPAREN; }
 ")"                 { return Parser::token::RPAREN; }
 "="                 { return Parser::token::ASSIGN; }

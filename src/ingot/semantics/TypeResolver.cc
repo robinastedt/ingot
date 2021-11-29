@@ -3,6 +3,9 @@
 #include <ingot/ast/FunctionType.hh>
 
 #include <ingot/semantics/SemanticError.hh>
+
+#include <ingot/Error.hh>
+
 #include <sstream>
 
 namespace ingot::semantics
@@ -20,8 +23,21 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::preop(ast::Operator&, ast::Type input, OperatorSide) {
-        return input;
+    TypeResolver::preop(ast::Operator& op, ast::Type input, OperatorSide side) {
+        switch (op.getVariant()) {
+            case ast::Operator::Variant::Eq:
+            case ast::Operator::Variant::Neq: {
+                switch (side) {
+                    case OperatorSide::LEFT: {
+                        return ast::Type::reference(&op.getRhs());
+                    } break;
+                    case OperatorSide::RIGHT: {
+                        return ast::Type::reference(&op.getLhs());
+                    } break;
+                }
+            }
+            default: return input;
+        }
     }
 
     ast::Type
@@ -60,6 +76,13 @@ namespace ingot::semantics
 
     ast::Type
     TypeResolver::postop(ast::Integer& i, ast::Type requiredType) {
+        if (requiredType.getVariant() == ast::Type::Variant::Reference) {
+            requiredType = requiredType.getReference().getType();
+            if (requiredType == ast::Type::integer(0)) {
+                // We reference an integer constant which has not yet been assigned a size
+                requiredType = ast::Type::integer(64); // Default to 64 bit.TODO: maybe automatically scale this depending on values?
+            }
+        }
         if (requiredType.getVariant() != ast::Type::Variant::Integer) {
             std::stringstream ss;
             ss << "Expression '" << i << "' "
@@ -112,7 +135,11 @@ namespace ingot::semantics
             ss << "In expression '" << op << "': Type of lhs '" << lhsResult << "' does not match type of rhs '" << rhsResult << "'";
             throw SemanticError(ss.str(), op.getLocation());
         }
-        return lhsResult;
+        switch (op.getVariant()) {
+            case ast::Operator::Variant::Eq:
+            case ast::Operator::Variant::Neq: return ast::Type::integer(1);
+            default: return lhsResult;
+        }
     }
 
     ast::Type

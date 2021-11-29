@@ -6,22 +6,26 @@
 
 namespace ingot::ast
 {
-    Type::Type(Variant variant, std::unique_ptr<Type> subtype, size_t size)
+    Type::Type(Variant variant, std::unique_ptr<Type> subtype, size_t size, Expression* reference)
     : Node()
     , m_variant(variant)
     , m_subtype(std::move(subtype))
-    , m_size(size) {}
+    , m_size(size)
+    , m_reference(reference) {}
 
     Type::Type()
     : Node()
     , m_variant(Variant::Unspecified)
-    , m_subtype() {}
+    , m_subtype()
+    , m_size(0)
+    , m_reference(nullptr) {}
 
     Type::Type(const Type& other)
     : Node(other)
     , m_variant(other.m_variant)
     , m_subtype(other.m_subtype ? std::make_unique<Type>(*other.m_subtype) : nullptr)
-    , m_size(other.m_size) {}
+    , m_size(other.m_size)
+    , m_reference(other.m_reference) {}
 
     Type&
     Type::operator=(const Type& other) {
@@ -29,6 +33,7 @@ namespace ingot::ast
         m_variant = other.m_variant;
         m_subtype = other.m_subtype ? std::make_unique<Type>(*other.m_subtype) : nullptr;
         m_size = other.m_size;
+        m_reference = other.m_reference;
         return *this;
     }
 
@@ -61,16 +66,28 @@ namespace ingot::ast
         m_size = size;
     }
 
+    const Expression&
+    Type::getReference() const {
+        if (!m_reference) {
+            throw internal_error("Type '" + getName() + "' does not have a reference");
+        }
+        return *m_reference;
+    }
+
     Type
     Type::integer(size_t size) {
-        return Type{Variant::Integer, nullptr, size};;
+        return Type{Variant::Integer, nullptr, size, nullptr};
     }
 
     Type
     Type::list(const Type& subtype) {
-        return Type{Variant::List, std::make_unique<Type>(subtype), 0};
+        return Type{Variant::List, std::make_unique<Type>(subtype), 0, nullptr};
     }
 
+    Type
+    Type::reference(Expression* reference) {
+        return Type{Variant::Reference, nullptr, 0, reference};
+    }
 
     bool
     Type::operator==(const Type& rhs) const {
@@ -83,6 +100,8 @@ namespace ingot::ast
             }
             case Variant::List: {
                 return *m_subtype == *rhs.m_subtype;
+            }
+            case Variant::Reference: {
             }
             default: throw internal_error("Unsupported type variant: " + (int)m_variant);
         }
@@ -105,6 +124,9 @@ namespace ingot::ast
             case Variant::List: {
                 return getSubtype() < rhs.getSubtype();
             }
+            case Variant::Reference: {
+                return m_reference < rhs.m_reference;
+            }
             default: throw internal_error("Unsupported type variant: " + (int)m_variant);
         }
     }
@@ -117,6 +139,10 @@ namespace ingot::ast
             case Variant::List: {
                 assert(m_subtype);
                 return "[" + m_subtype->getName() + "]";
+            }
+            case Variant::Reference: {
+                assert(m_reference);
+                return "reftype(" + std::to_string((ptrdiff_t)m_reference) + ")";
             }
             default: throw internal_error("Unsupported type variant: " + (int)m_variant);
         }

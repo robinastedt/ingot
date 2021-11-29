@@ -66,6 +66,7 @@
 %nterm <std::vector<ast::Type>>         argtypes
 %nterm <ast::Type>                      type
 
+%left                       EQUALITY INEQUALITY
 %left                       PLUS MINUS
 %left                       MULTIPLY DIVIDE MODULO
 %precedence                 UMINUS
@@ -113,6 +114,8 @@ expr    : KW_IF expr KW_THEN expr KW_ELSE expr  { $$ = ast::Ternary(std::make_un
         | expr MULTIPLY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Mul); $$.setLocation(@1 + @3); }
         | expr DIVIDE expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Div); $$.setLocation(@1 + @3); }
         | expr MODULO expr          { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Mod); $$.setLocation(@1 + @3); }
+        | expr EQUALITY expr        { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Eq); $$.setLocation(@1 + @3); }
+        | expr INEQUALITY expr      { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Neq); $$.setLocation(@1 + @3); }
         | MINUS expr %prec UMINUS   { $$ = ast::Operator(std::make_unique<ast::Expression>(ast::Integer(0)), std::make_unique<ast::Expression>($2), ast::Operator::Variant::Sub); $$.setLocation(@1 + @2); }
         | LPAREN expr RPAREN        { $$ = $2;  $$.setLocation(@2); }
         ;

@@ -18,6 +18,7 @@ namespace ingot::ast
         int64_t getValue() const;
         const Type& getType() const;
         void setSize(size_t size);
+        bool operator==(const Integer& other) const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Integer& integer);

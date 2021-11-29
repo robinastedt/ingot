@@ -26,6 +26,8 @@ namespace ingot::ast
 
         std::vector<Expression>& getElements();
         const std::vector<Expression>& getElements() const;
+
+        bool operator==(const List& other) const;
     };
 
     std::ostream& operator<<(std::ostream& str, const List& list);

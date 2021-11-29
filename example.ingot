@@ -8,7 +8,7 @@ value3 = () -> [i8] : () -> "3"
 cond1 = () -> i1 : () -> 1  # 0x10
 cond2 = () -> i1 : () -> 1  # 0x01
 
-main = () -> [i8] : () -> 
+nestedExample = () -> [i8] : () ->
     if cond1() then 
         if cond2() then
             value3()
@@ -20,3 +20,9 @@ main = () -> [i8] : () ->
         else
             value0()
 
+fib = (i64) -> i64 : (i) ->
+    if (i == 0) then 0
+    else if (i == 1) then 1
+    else fib(i - 2) + fib(i - 1)
+
+main = () -> i64 : () -> fib(20)  # results in 6756

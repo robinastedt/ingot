@@ -36,6 +36,11 @@ namespace ingot::ast
     }
 
     const Type&
+    FunctionCall::getType() const {
+        return getReturnType();
+    }
+
+    const Type&
     FunctionCall::getReturnType() const {
         return getFunctionType().getReturnType(); // :)
     }
@@ -46,6 +51,11 @@ namespace ingot::ast
             throw internal_error("Tried to access function definition before its been set on function call: " + m_name);
         }
         return m_definition->getFunction().getFunctionType();
+    }
+
+    bool
+    FunctionCall::operator==(const FunctionCall& other) const {
+        return m_name == other.m_name && m_arguments == other.m_arguments;
     }
 
     std::ostream& operator<<(std::ostream& str, const FunctionCall& functionCall) {

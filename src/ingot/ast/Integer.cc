@@ -22,6 +22,11 @@ namespace ingot::ast
         m_type.setSize(size);
     }
 
+    bool
+    Integer::operator==(const Integer& other) const {
+        return m_value == other.m_value && m_type == other.m_type;
+    }
+
     std::ostream& operator<<(std::ostream& str, const Integer& integer) {
         return str << integer.m_value;
     }

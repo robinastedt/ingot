@@ -21,6 +21,15 @@ namespace ingot::ast
          }, static_cast<const ExpressionVariant&>(*this));
     }
 
+    const Type&
+    Expression::getType() const {
+        return std::visit(overloaded{
+            [](const auto& expr) -> const Type& { return expr.getType();},
+            [](const std::monostate&) -> const Type& {throw internal_error("Found monostate in expression."); }
+            
+         }, static_cast<const ExpressionVariant&>(*this));
+    }
+
     std::ostream& operator<<(std::ostream& str, const Expression& expr) {
         return std::visit([&](const auto& val) -> std::ostream& { return str << val; }
             , static_cast<const ExpressionVariant&>(expr));

@@ -57,4 +57,16 @@ namespace ingot::ast
         return *m_falseBranch;
     }
 
+    const Type&
+    Ternary::getType() const {
+        return m_trueBranch->getType();
+    }
+
+    bool
+    Ternary::operator==(const Ternary& other) const {
+        return *m_condition == *other.m_condition &&
+               *m_trueBranch == *other.m_trueBranch &&
+               *m_falseBranch == *other.m_falseBranch;
+    }
+
 } // namespace ingot::ast

@@ -24,9 +24,11 @@ namespace ingot::ast
         const std::vector<Expression>& getArguments() const;
         std::vector<Expression>& getArguments();
         void setFunctionDefinition(const FunctionDefinition& defintion);
+        const Type& getType() const;
         const Type& getReturnType() const;
         const FunctionType& getFunctionType() const;
 
+        bool operator==(const FunctionCall& other) const;
     };
 
     std::ostream& operator<<(std::ostream& str, const FunctionCall& functionCall);

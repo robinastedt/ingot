@@ -7,21 +7,25 @@
 
 namespace ingot::ast
 {
+    class Expression;
+
     class Type : public Node {
     public:
         enum class Variant {
             Unspecified,
             Integer,
-            List
+            List,
+            Reference
         };
     private:
         Variant m_variant;
         std::unique_ptr<Type> m_subtype;  // Used by List
         size_t m_size;  // Used by Integer
+        const Expression* m_reference;  // Used by Reference
 
         friend std::ostream& operator<<(std::ostream& str, const Type& type);
 
-        Type(Variant variant, std::unique_ptr<Type> subtype, size_t size);
+        Type(Variant variant, std::unique_ptr<Type> subtype, size_t size, Expression* reference);
 
     public:
         Type();
@@ -31,9 +35,11 @@ namespace ingot::ast
         Variant getVariant() const;
         size_t getSize() const;
         void setSize(size_t size);
+        const Expression& getReference() const;
 
         static Type integer(size_t size);
         static Type list(const Type& subtype);
+        static Type reference(Expression* reference);
         
         
         bool operator==(const Type& rhs) const;

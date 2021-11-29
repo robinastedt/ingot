@@ -30,6 +30,11 @@ namespace ingot::ast
         m_index = index;
     }
 
+    bool
+    ArgumentReference::operator==(const ArgumentReference& other) const {
+        return m_name == other.m_name;
+    }
+
     std::ostream& operator<<(std::ostream& str, const ArgumentReference& arg) {
         return str << arg.m_name;
     }

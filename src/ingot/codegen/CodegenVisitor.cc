@@ -88,6 +88,8 @@ namespace ingot::codegen
                 case ast::Operator::Variant::Mul: return { m_builder.GetInsertBlock(), m_builder.CreateMul(lhsResult.m_value, rhsResult.m_value, "tmpmul"), type};
                 case ast::Operator::Variant::Div: return { m_builder.GetInsertBlock(), m_builder.CreateSDiv(lhsResult.m_value, rhsResult.m_value, "tmpdiv"), type};
                 case ast::Operator::Variant::Mod: return { m_builder.GetInsertBlock(), m_builder.CreateSRem(lhsResult.m_value, rhsResult.m_value, "tmprem"), type};
+                case ast::Operator::Variant::Eq: return { m_builder.GetInsertBlock(), m_builder.CreateICmpEQ(lhsResult.m_value, rhsResult.m_value, "tmpeq"), ast::Type::integer(1)};
+                case ast::Operator::Variant::Neq: return { m_builder.GetInsertBlock(), m_builder.CreateICmpNE(lhsResult.m_value, rhsResult.m_value, "tmpneq"), ast::Type::integer(1)};
             }
             throw internal_error("Unhandled Operator::Variant: " + ast::Operator::variantToString(op.getVariant()));
         }

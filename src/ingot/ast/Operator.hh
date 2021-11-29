@@ -8,6 +8,7 @@
 namespace ingot::ast
 {
     class Expression;
+    class Type;
 
     class Operator : public Node {
     public:
@@ -16,7 +17,9 @@ namespace ingot::ast
             Sub,
             Mul,
             Div,
-            Mod
+            Mod,
+            Eq,
+            Neq
         };
     private:
 
@@ -35,8 +38,11 @@ namespace ingot::ast
         const Expression& getRhs() const;
         Expression& getRhs();
         Variant getVariant() const;
+        const Type& getType() const;
 
         static std::string variantToString(Variant var);
+
+        bool operator==(const Operator& other) const;
     };
 
     std::ostream& operator<<(std::ostream& str, const Operator& op);

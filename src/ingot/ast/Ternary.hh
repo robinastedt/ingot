@@ -7,6 +7,7 @@
 namespace ingot::ast
 {
     class Expression;
+    class Type;
 
     class Ternary : public Node {
         using ExprPtr = std::unique_ptr<Expression>;
@@ -20,12 +21,15 @@ namespace ingot::ast
         Ternary(const Ternary& other);
         Ternary& operator=(const Ternary& other);
 
-
         Expression& getCondition();
         Expression& getTrueBranch();
         Expression& getFalseBranch();
         const Expression& getCondition() const;
         const Expression& getTrueBranch() const;
         const Expression& getFalseBranch() const;
+
+        const Type& getType() const;
+
+        bool operator==(const Ternary& other) const;
     };
 } // namespace ingot::ast

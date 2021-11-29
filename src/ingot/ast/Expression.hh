@@ -174,6 +174,14 @@ namespace ingot::ast
 
         void setLocation(ingot::parser::location location);
         const parser::location& getLocation() const;
+
+        const Type& getType() const;
+
+        //template<typename ExprType>
+        //bool
+        //operator==(const ExprType& other) {
+        //    return *this == Expression{other};
+        //}
     };
 
     std::ostream& operator<<(std::ostream& str, const Expression& expr);
