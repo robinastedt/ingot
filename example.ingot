@@ -14,6 +14,10 @@ test = () -> i8 : () -> 127
 # We want to be able to pass functions as arguments and used as values, so this should not work, but right now it does
 rhs = () -> i33 : () -> 0
 
+# Test wrong type of element
+#listtest = () -> [i9] : () -> ['a', 'b', test()]
+
+listOfLists = () -> [[i8]] : () -> ["hello", "world", "!"]
 
 add = (i33, i33) -> i33 : (lhs, rhs) -> lhs + 2 + rhs + rhs() + const()
-main = () -> i33 : () -> add(1, 'z' - 'a')
+main = () -> [i8] : () -> hello()

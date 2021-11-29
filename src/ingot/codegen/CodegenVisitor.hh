@@ -32,7 +32,7 @@ namespace ingot::codegen
             const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
         );
         CodegenVisitorInfo postop(const ast::Integer& i, std::monostate) const override;
-        CodegenVisitorInfo postop(const ast::String& str, std::monostate) const override;
+        CodegenVisitorInfo postop(const ast::List& list, const std::vector<CodegenVisitorInfo>& results, std::monostate) const override;
         CodegenVisitorInfo postop(const ast::Operator& op, const std::pair<CodegenVisitorInfo,CodegenVisitorInfo>& results, std::monostate) const override;
         CodegenVisitorInfo postop(const ast::FunctionCall& func, const std::vector<CodegenVisitorInfo>& results, std::monostate) const override;
         CodegenVisitorInfo postop(const ast::ArgumentReference& arg, std::monostate) const override;

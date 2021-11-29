@@ -31,23 +31,21 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::postop(const ast::String& str, std::monostate) const {
-        const ListOperations& listOperations = m_listOperationsCollection.get(str.getType());
+    CodegenVisitor::postop(const ast::List& list, const std::vector<CodegenVisitorInfo>& results, std::monostate) const {
+        const ListOperations& listOperations = m_listOperationsCollection.get(list.getType());
         llvm::Function* emptyFunction = listOperations.getEmptyFunction();
         llvm::Function* appendFunction = listOperations.getAppendFunction();
-        llvm::Type* listType = m_typeContext.getLLVMType(str.getType());
+        llvm::Type* listType = m_typeContext.getLLVMType(list.getType());
         llvm::Value* emptyList = m_builder.CreateCall(emptyFunction);
         llvm::AllocaInst* listPtr = m_builder.CreateAlloca(listType, nullptr, "listPtr");
         m_builder.CreateStore(emptyList, listPtr);
         // TODO: This is extremely inefficient, implement function to initialize list from array instead
-        for (char c : boost::adaptors::reverse(str.getValue())) {
-            llvm::ConstantInt* charValue = llvm::ConstantInt::get(m_builder.getInt8Ty(), c);
-            llvm::Value* list = m_builder.CreateCall(appendFunction, {charValue, listPtr});
+        for (const CodegenVisitorInfo& elemInfo : boost::adaptors::reverse(results)) {
+            llvm::Value* list = m_builder.CreateCall(appendFunction, {elemInfo.m_value, listPtr});
             m_builder.CreateStore(list, listPtr);
         }
         llvm::LoadInst* loadInst = m_builder.CreateLoad(listPtr, "load_return");
-        return {loadInst, str.getType()};
-
+        return {loadInst, list.getType()};
     }
 
     CodegenVisitorInfo

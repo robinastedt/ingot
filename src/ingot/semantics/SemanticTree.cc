@@ -60,8 +60,7 @@ namespace ingot::semantics
             ast::Function& function = def.getFunction();
             ast::Expression& expr = function.getExpression();
             ast::Type retType = function.getFunctionType().getReturnType();
-            size_t retSize = retType.getVariant() == ast::Type::Variant::Integer ? retType.getSize() : 0;
-            ast::Type exprType = expr.traverse(typeResolver, retSize);
+            ast::Type exprType = expr.traverse(typeResolver, retType);
             
             if (exprType != retType) {
                 std::stringstream ss;

@@ -44,9 +44,10 @@ namespace ingot::codegen
         llvm::Function* printfFunc = llvm::Function::Create(printfPrototype, llvm::Function::ExternalLinkage, "printf", mainModule.get());
 
         // print_string declaration
-        llvm::Type* stringLLVMType = typeContext.getLLVMType(ast::String::getType());
+        ast::Type stringType = ast::Type::list(ast::Type::integer(8));
+        llvm::Type* stringLLVMType = typeContext.getLLVMType(stringType);
         llvm::PointerType* stringPtrLLVMType = llvm::PointerType::get(stringLLVMType, 0);
-        ListOperations stringOperations = listOperationsCollection.get(ast::String::getType());
+        ListOperations stringOperations = listOperationsCollection.get(stringType);
         llvm::FunctionType* printStringPrototype = llvm::FunctionType::get(builder.getVoidTy(), {stringPtrLLVMType}, false);
         llvm::Function* printStringFunc = llvm::Function::Create(printStringPrototype, llvm::Function::InternalLinkage, "ingot_print_string", mainModule.get());
 
@@ -94,7 +95,7 @@ namespace ingot::codegen
             builder.CreateRetVoid();
 
             builder.SetInsertPoint(printChunkBlock);
-            llvm::ArrayType* arrayType = typeContext.getLLVMTypeForListArrayMember(ast::String::getType());
+            llvm::ArrayType* arrayType = typeContext.getLLVMTypeForListArrayMember(stringType);
             llvm::Value* arrayLength = llvm::ConstantInt::get(counterType, arrayType->getArrayNumElements());
             llvm::Value* index = builder.CreateSub(arrayLength, inputCount, "inputIndex");
             llvm::Value* inputArrayPtr = builder.CreateStructGEP(inputPtr, 1, "inputArrayPtr");
@@ -134,9 +135,9 @@ namespace ingot::codegen
                 llvm::CallInst* userMainCall = builder.CreateCall(userMain);
                 builder.CreateCall(printfFunc, {formatStrConstant, userMainCall});
                 builder.CreateRet(exitSuccess);
-            } else if (userMainRetType == ast::String::getType()) {
+            } else if (userMainRetType == stringType) {
                 llvm::CallInst* userMainCall = builder.CreateCall(userMain);
-                llvm::AllocaInst* stringPtr = builder.CreateAlloca(typeContext.getLLVMType(ast::String::getType()), nullptr, "stringPtr");
+                llvm::AllocaInst* stringPtr = builder.CreateAlloca(typeContext.getLLVMType(stringType), nullptr, "stringPtr");
                 builder.CreateStore(userMainCall, stringPtr);
                 builder.CreateCall(printStringFunc, stringPtr);
                 builder.CreateRet(exitSuccess);

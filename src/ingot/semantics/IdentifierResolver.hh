@@ -16,7 +16,7 @@ namespace ingot::semantics
         IdentifierResolver(const ast::Function& scopeFunction, const DefMap& definitionMap);
 
         std::monostate postop(ast::Integer& i, std::monostate) const override;
-        std::monostate postop(ast::String& str, std::monostate) const override;
+        std::monostate postop(ast::List& list, const std::vector<std::monostate>& elemResults, std::monostate) const override;
         std::monostate postop(ast::Operator& op, const std::pair<std::monostate, std::monostate>& argResults, std::monostate) const override;
         std::monostate postop(ast::FunctionCall& func, const std::vector<std::monostate>& argResults, std::monostate) const override;
         std::monostate postop(ast::ArgumentReference& arg, std::monostate) const override;

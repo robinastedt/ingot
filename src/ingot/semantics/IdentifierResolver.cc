@@ -17,11 +17,13 @@ namespace ingot::semantics
     IdentifierResolver::postop(ast::Integer& i, std::monostate) const { return {}; }
 
     std::monostate
-    IdentifierResolver::postop(ast::String& str, std::monostate) const { return {}; }
-
-    std::monostate
     IdentifierResolver::postop(ast::Operator& op, const std::pair<std::monostate, std::monostate>&, std::monostate) const {
         return {}; 
+    }
+
+    std::monostate
+    IdentifierResolver::postop(ast::List& list, const std::vector<std::monostate>& elemResults, std::monostate) const {
+        return {};
     }
 
     std::monostate

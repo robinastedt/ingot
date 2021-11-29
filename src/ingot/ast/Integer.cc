@@ -23,7 +23,7 @@ namespace ingot::ast
     }
 
     std::ostream& operator<<(std::ostream& str, const Integer& integer) {
-        return str << integer.m_type << "(" << integer.m_value << ")";
+        return str << integer.m_value;
     }
 } // namespace ingot::ast
 

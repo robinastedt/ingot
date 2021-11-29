@@ -20,7 +20,6 @@
     #include <ingot/ast/Expression.hh>
     #include <ingot/ast/FunctionDefinition.hh>
     #include <ingot/ast/Function.hh>
-    #include <ingot/ast/String.hh>
     #include <string>
 
     namespace ingot::parser {
@@ -53,6 +52,8 @@
 
 %nterm <ast::FunctionDefinition>        fundef
 %nterm <ast::Expression>                expr
+%nterm <ast::List>                      list
+%nterm <std::vector<ast::Expression>>   maybeExprs
 %nterm <std::vector<ast::Expression>>   exprs
 %nterm <ast::Function>                  fun
 %nterm <std::vector<std::string>>       maybeArgs
@@ -79,6 +80,7 @@ fun         : funtype COLON LPAREN maybeArgs RPAREN RARROW expr  { $$ = ast::Fun
 funtype     : LPAREN maybeArgtypes RPAREN RARROW type  { $$ = ast::FunctionType($5, $2); $$.setLocation(@1 + @5);  }
 
 
+
 maybeArgs       : %empty                    { $$ = std::vector<std::string>(); }
                 | args                      { $$ = $1; }
 args            : IDENT                     { $$ = {$1}; }
@@ -90,13 +92,17 @@ maybeArgtypes   : %empty                    { $$ = std::vector<ast::Type>(); }
 argtypes        : type                      { $$ = {$1}; }
                 | argtypes COMMA type       { std::vector<ast::Type> copy = $1; copy.push_back($3); $$ = std::move(copy); }
 
-exprs           : %empty                    { $$ = std::vector<ast::Expression>(); }
-                | expr                      { $$ = {$1}; }
+maybeExprs      : %empty                    { $$ = std::vector<ast::Expression>(); }
+                | exprs                     { $$ = $1; }
+exprs           : expr                      { $$ = {$1}; }
                 | exprs COMMA expr          { std::vector<ast::Expression> copy = $1; copy.push_back($3); $$ = std::move(copy); }
 
+list            : LBRACKET maybeExprs RBRACKET   { $$ = ast::List{$2}; }
+                | STRING                         { $$ = ast::List{$1}; }
+
 expr    : INTEGER                   { $$ = ast::Integer($1); $$.setLocation(@1); }
-        | STRING                    { $$ = ast::String($1); $$.setLocation(@1); }
-        | IDENT LPAREN exprs RPAREN { $$ = ast::FunctionCall($1, $3); $$.setLocation(@1 + @4); }
+        | list                      { $$ = $1; $$.setLocation(@1); }
+        | IDENT LPAREN maybeExprs RPAREN { $$ = ast::FunctionCall($1, $3); $$.setLocation(@1 + @4); }
         | IDENT                     { $$ = ast::ArgumentReference($1); $$.setLocation(@1); }
         | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Add); $$.setLocation(@1 + @3); }
         | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Sub); $$.setLocation(@1 + @3); }

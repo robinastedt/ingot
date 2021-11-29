@@ -8,8 +8,8 @@ add_library(ingotast STATIC
     FunctionDefinition.cc
     FunctionType.cc
     Integer.cc
+    List.cc
     Node.cc
     Operator.cc
-    String.cc
     Type.cc
 )

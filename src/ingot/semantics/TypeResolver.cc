@@ -9,18 +9,24 @@ namespace ingot::semantics
 {
     TypeResolver::TypeResolver() {}
 
-    size_t
-    TypeResolver::preop(ast::Operator&, size_t size, OperatorSide) const {
-        return size;
+    ast::Type
+    TypeResolver::preop(ast::List& list, ast::Type input, size_t index) const {
+        if (input.getVariant() != ast::Type::Variant::List) {
+            std::stringstream ss;
+            ss << "Expression '" << list << "' is a list and does not match expected type '" << input << "'.";
+            throw SemanticError(ss.str(), list.getLocation());
+        }
+        return input.getSubtype();
     }
 
-    size_t
-    TypeResolver::preop(ast::FunctionCall& func, size_t, size_t index) const {
-        ast::Type argType = func.getFunctionType().getArgumentType(index);
-        if (argType.getVariant() != ast::Type::Variant::Integer) {
-            return 0;
-        }
-        return argType.getSize();
+    ast::Type
+    TypeResolver::preop(ast::Operator&, ast::Type input, OperatorSide) const {
+        return input;
+    }
+
+    ast::Type
+    TypeResolver::preop(ast::FunctionCall& func, ast::Type, size_t index) const {
+        return func.getFunctionType().getArgumentType(index);
     }
 
     namespace
@@ -43,14 +49,20 @@ namespace ingot::semantics
     } // namespace
 
     ast::Type
-    TypeResolver::postop(ast::Integer& i, size_t size) const {
-        i.setSize(size);
+    TypeResolver::postop(ast::Integer& i, ast::Type requiredType) const {
+        if (requiredType.getVariant() != ast::Type::Variant::Integer) {
+            std::stringstream ss;
+            ss << "Expression '" << i << "' "
+               << "does not match the expected type '" << requiredType << "'.";
+            throw SemanticError(ss.str(), i.getLocation());
+        }
+        i.setSize(requiredType.getSize());
         auto value = i.getValue();
 
         // Right now, unary negation does not count towards the integer token itself
         // meaning -128 does not "fit" inside of an i8
         // TODO: Update lexer to include unary negation of integer tokens
-        if (!valueFits(value, size)) {
+        if (!valueFits(value, requiredType.getSize())) {
             std::stringstream ss;
             ss << "Integer literal '" << value << "' "
                 << "can not fit in resolved type '" << i.getType() << "'.";
@@ -60,12 +72,29 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::postop(ast::String& str, size_t size) const {
-        return str.getType();
+    TypeResolver::postop(ast::List& list, const std::vector<ast::Type>& elemResults, ast::Type requiredType) const {
+        if (requiredType.getVariant() != ast::Type::Variant::List) {
+            std::stringstream ss;
+            ss << "Expression '" << list << "' is a list and does not match expected type '" << requiredType << "'.";
+            throw SemanticError(ss.str(), list.getLocation());
+        }
+        ast::Type subtype = requiredType.getSubtype();
+        size_t index = 0;
+        for (const ast::Type& elemType : elemResults) {
+            if (elemType != subtype) {
+                std::stringstream ss;
+                ss << "Expression '" << list.getElements()[index] << "' of type '" << elemType << "' does not match expected element type '" << subtype << "' of list '" << list << "'.";
+                throw SemanticError(ss.str(), list.getLocation());
+            }
+            ++index;
+        }
+
+        list.setElementType(subtype);
+        return list.getType();
     }
 
     ast::Type
-    TypeResolver::postop(ast::Operator& op, const std::pair<ast::Type, ast::Type>& results, size_t size) const {
+    TypeResolver::postop(ast::Operator& op, const std::pair<ast::Type, ast::Type>& results, ast::Type) const {
         const ast::Type& lhsResult = results.first;
         const ast::Type& rhsResult = results.second;
         if (lhsResult != rhsResult) {
@@ -77,7 +106,7 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::postop(ast::FunctionCall& func, const std::vector<ast::Type>& args, size_t size) const {
+    TypeResolver::postop(ast::FunctionCall& func, const std::vector<ast::Type>& args, ast::Type) const {
         const ast::FunctionType& functionType = func.getFunctionType();
         const std::vector<ast::Type>& declTypes = functionType.getArgumentTypes();
         if (declTypes.size() != args.size()) {
@@ -103,7 +132,7 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::postop(ast::ArgumentReference& arg, size_t size) const {
+    TypeResolver::postop(ast::ArgumentReference& arg, ast::Type) const {
         return arg.getType();
     }
 

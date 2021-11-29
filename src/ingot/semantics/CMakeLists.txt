@@ -4,3 +4,7 @@ add_library(ingotsemantics
     SemanticTree.cc
     TypeResolver.cc
 )
+
+target_link_libraries(ingotsemantics
+    ingotast
+)
