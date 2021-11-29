@@ -23,11 +23,33 @@ namespace ingot::codegen
     , m_typeContext(typeContext)
     , m_listOperationsCollection(listOperationsCollection)
     , m_semanticTree(semanticTree)
-    , m_functionMap(functionMap) {}
+    , m_functionMap(functionMap)
+    , m_ternaryContextStack() {}
+
+    std::monostate
+    CodegenVisitor::preop(const ast::Ternary& func, std::monostate input, TernaryPosition position) const {
+        switch (position) {
+            case TernaryPosition::CONDITION: {
+                std::string twineSuffix = std::to_string(m_ternaryContextStack.size());
+                TernaryContext& context = m_ternaryContextStack.emplace();
+                context.entry = m_builder.GetInsertBlock();
+                context.trueBranch = llvm::BasicBlock::Create(m_builder.getContext(), "trueBranch_" + twineSuffix, m_scopeFunction);
+                context.falseBranch = llvm::BasicBlock::Create(m_builder.getContext(), "falseBranch_" + twineSuffix, m_scopeFunction);
+                context.result = llvm::BasicBlock::Create(m_builder.getContext(), "result_" + twineSuffix, m_scopeFunction);
+            } break;
+            case TernaryPosition::TRUE_BRANCH: {
+                m_builder.SetInsertPoint(m_ternaryContextStack.top().trueBranch);
+            } break;
+            case TernaryPosition::FALSE_BRANCH: {
+                m_builder.SetInsertPoint(m_ternaryContextStack.top().falseBranch);
+            }
+        }
+        return {};
+    }
 
     CodegenVisitorInfo
     CodegenVisitor::postop(const ast::Integer& i, std::monostate) const {
-        return {llvm::ConstantInt::get(m_builder.getIntNTy(i.getType().getSize()), i.getValue()), i.getType()};
+        return {m_builder.GetInsertBlock(), llvm::ConstantInt::get(m_builder.getIntNTy(i.getType().getSize()), i.getValue()), i.getType()};
     }
 
     CodegenVisitorInfo
@@ -45,7 +67,7 @@ namespace ingot::codegen
             m_builder.CreateStore(list, listPtr);
         }
         llvm::LoadInst* loadInst = m_builder.CreateLoad(listPtr, "load_return");
-        return {loadInst, list.getType()};
+        return {m_builder.GetInsertBlock(), loadInst, list.getType()};
     }
 
     CodegenVisitorInfo
@@ -56,16 +78,16 @@ namespace ingot::codegen
         ast::Type type = lhsResult.m_type;
         if (type.getVariant() == ast::Type::Variant::Integer) {
             switch (op.getVariant()) {
-                case ast::Operator::Variant::Add: return {m_builder.CreateAdd(lhsResult.m_value, rhsResult.m_value, "tmpadd"), type};
+                case ast::Operator::Variant::Add: return {m_builder.GetInsertBlock(), m_builder.CreateAdd(lhsResult.m_value, rhsResult.m_value, "tmpadd"), type};
                 case ast::Operator::Variant::Sub: {
                     if (std::holds_alternative<ast::Integer>(op.getLhs()) && std::get<ast::Integer>(op.getLhs()).getValue() == 0) {
-                        return {m_builder.CreateNeg(rhsResult.m_value, "tmpneg"), type};
+                        return {m_builder.GetInsertBlock(), m_builder.CreateNeg(rhsResult.m_value, "tmpneg"), type};
                     }
-                    return {m_builder.CreateSub(lhsResult.m_value, rhsResult.m_value, "tmpsub"), type};
+                    return {m_builder.GetInsertBlock(), m_builder.CreateSub(lhsResult.m_value, rhsResult.m_value, "tmpsub"), type};
                 }
-                case ast::Operator::Variant::Mul: return { m_builder.CreateMul(lhsResult.m_value, rhsResult.m_value, "tmpmul"), type};
-                case ast::Operator::Variant::Div: return { m_builder.CreateSDiv(lhsResult.m_value, rhsResult.m_value, "tmpdiv"), type};
-                case ast::Operator::Variant::Mod: return { m_builder.CreateSRem(lhsResult.m_value, rhsResult.m_value, "tmprem"), type};
+                case ast::Operator::Variant::Mul: return { m_builder.GetInsertBlock(), m_builder.CreateMul(lhsResult.m_value, rhsResult.m_value, "tmpmul"), type};
+                case ast::Operator::Variant::Div: return { m_builder.GetInsertBlock(), m_builder.CreateSDiv(lhsResult.m_value, rhsResult.m_value, "tmpdiv"), type};
+                case ast::Operator::Variant::Mod: return { m_builder.GetInsertBlock(), m_builder.CreateSRem(lhsResult.m_value, rhsResult.m_value, "tmprem"), type};
             }
             throw internal_error(std::string("Unhandled Operator::Variant: ") + (char)(op.getVariant()));
         //} else if (type.getVariant() == ast::Type::Variant::List) {
@@ -100,11 +122,39 @@ namespace ingot::codegen
             argValues.push_back(result.m_value);
         }
 
-        return {m_builder.CreateCall(func, argValues), def.getFunction().getFunctionType().getReturnType()};
+        return {m_builder.GetInsertBlock(), m_builder.CreateCall(func, argValues), def.getFunction().getFunctionType().getReturnType()};
     }
 
     CodegenVisitorInfo
     CodegenVisitor::postop(const ast::ArgumentReference& arg, std::monostate) const {
-        return {m_scopeFunction->getArg(arg.getIndex()), arg.getType()};
+        return {m_builder.GetInsertBlock(), m_scopeFunction->getArg(arg.getIndex()), arg.getType()};
+    }
+
+    CodegenVisitorInfo
+    CodegenVisitor::postop(const ast::Ternary& ternary, const std::tuple<CodegenVisitorInfo, CodegenVisitorInfo, CodegenVisitorInfo>& results, std::monostate) const {
+        const CodegenVisitorInfo& condInfo = std::get<0>(results);
+        const CodegenVisitorInfo& trueBranchInfo = std::get<1>(results);
+        const CodegenVisitorInfo& falseBranchInfo = std::get<2>(results);
+
+        if (condInfo.m_type != ast::Type::integer(1)) {
+            throw internal_error("Condition is not boolean type.");
+        }
+        if (trueBranchInfo.m_type != falseBranchInfo.m_type) {
+            throw internal_error("True and false branch types do not match.");
+        }
+
+        TernaryContext context = m_ternaryContextStack.top();
+        m_ternaryContextStack.pop();
+        m_builder.SetInsertPoint(context.entry);
+        m_builder.CreateCondBr(condInfo.m_value, context.trueBranch, context.falseBranch);
+        m_builder.SetInsertPoint(trueBranchInfo.m_block);
+        m_builder.CreateBr(context.result);
+        m_builder.SetInsertPoint(falseBranchInfo.m_block);
+        m_builder.CreateBr(context.result);
+        m_builder.SetInsertPoint(context.result);
+        llvm::PHINode* phiNode = m_builder.CreatePHI(m_typeContext.getLLVMType(trueBranchInfo.m_type), 2, "ternaryResult");
+        phiNode->addIncoming(trueBranchInfo.m_value, trueBranchInfo.m_block);
+        phiNode->addIncoming(falseBranchInfo.m_value, falseBranchInfo.m_block);
+        return {context.result, phiNode, trueBranchInfo.m_type};
     }
 } // namespace ingot::codegen

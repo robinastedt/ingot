@@ -36,6 +36,9 @@
 }
  
 %token                      LPAREN RPAREN
+%token                      KW_IF
+%token                      KW_THEN
+%token                      KW_ELSE
 %token <int64_t>            INTEGER
 //%token <double>           FLOAT
 %token <std::string>        STRING
@@ -100,9 +103,10 @@ exprs           : expr                      { $$ = {$1}; }
 list            : LBRACKET maybeExprs RBRACKET   { $$ = ast::List{$2}; }
                 | STRING                         { $$ = ast::List{$1}; }
 
-expr    : INTEGER                   { $$ = ast::Integer($1); $$.setLocation(@1); }
-        | list                      { $$ = $1; $$.setLocation(@1); }
-        | IDENT LPAREN maybeExprs RPAREN { $$ = ast::FunctionCall($1, $3); $$.setLocation(@1 + @4); }
+expr    : KW_IF expr KW_THEN expr KW_ELSE expr  { $$ = ast::Ternary(std::make_unique<ast::Expression>($2), std::make_unique<ast::Expression>($4), std::make_unique<ast::Expression>($6)); $$.setLocation(@1 + @6); }
+        | INTEGER                               { $$ = ast::Integer($1); $$.setLocation(@1); }
+        | list                                  { $$ = $1; $$.setLocation(@1); }
+        | IDENT LPAREN maybeExprs RPAREN        { $$ = ast::FunctionCall($1, $3); $$.setLocation(@1 + @4); }
         | IDENT                     { $$ = ast::ArgumentReference($1); $$.setLocation(@1); }
         | expr PLUS expr            { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Add); $$.setLocation(@1 + @3); }
         | expr MINUS expr           { $$ = ast::Operator(std::make_unique<ast::Expression>($1), std::make_unique<ast::Expression>($3), ast::Operator::Variant::Sub); $$.setLocation(@1 + @3); }
@@ -112,6 +116,7 @@ expr    : INTEGER                   { $$ = ast::Integer($1); $$.setLocation(@1);
         | MINUS expr %prec UMINUS   { $$ = ast::Operator(std::make_unique<ast::Expression>(ast::Integer(0)), std::make_unique<ast::Expression>($2), ast::Operator::Variant::Sub); $$.setLocation(@1 + @2); }
         | LPAREN expr RPAREN        { $$ = $2;  $$.setLocation(@2); }
         ;
+
 
 type    : TYPE_INT                 { $$ = ast::Type::integer($1); $$.setLocation(@1); }
         | LBRACKET type RBRACKET    { $$ = ast::Type::list($2); $$.setLocation(@1 + @3); }

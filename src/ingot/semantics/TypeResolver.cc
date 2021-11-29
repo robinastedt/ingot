@@ -29,6 +29,16 @@ namespace ingot::semantics
         return func.getFunctionType().getArgumentType(index);
     }
 
+    ast::Type
+    TypeResolver::preop(ast::Ternary&, ast::Type input, TernaryPosition position) const {
+        switch (position) {
+            case TernaryPosition::CONDITION: return ast::Type::integer(1);
+            case TernaryPosition::TRUE_BRANCH: return input;
+            case TernaryPosition::FALSE_BRANCH: return input;
+        }
+        __builtin_unreachable();
+    }
+
     namespace
     {
         bool valueFits(int64_t value, size_t size) {
@@ -134,6 +144,32 @@ namespace ingot::semantics
     ast::Type
     TypeResolver::postop(ast::ArgumentReference& arg, ast::Type) const {
         return arg.getType();
+    }
+
+    ast::Type
+    TypeResolver::postop(ast::Ternary& ternary, const std::tuple<ast::Type, ast::Type, ast::Type>& results, ast::Type requiredType) const {
+        const ast::Type& condType = std::get<0>(results);
+        const ast::Type& trueBranchType = std::get<1>(results);
+        const ast::Type& falseBranchType = std::get<2>(results);
+        if (condType != ast::Type::integer(1)) {
+            std::stringstream ss;
+            ss << "Expression '" << ternary.getCondition() << "' of type '" << condType << "' "
+               << "does not match expected type '" << ast::Type::integer(1) << "' (bool).";
+            throw SemanticError(ss.str(), ternary.getCondition().getLocation());
+        }
+        if (trueBranchType != requiredType) {
+            std::stringstream ss;
+            ss << "Expression '" << ternary.getTrueBranch() << "' of type '" << trueBranchType << "' "
+               << "does not match expected type '" << requiredType << "'.";
+            throw SemanticError(ss.str(), ternary.getTrueBranch().getLocation());
+        }
+        if (falseBranchType != requiredType) {
+            std::stringstream ss;
+            ss << "Expression '" << ternary.getFalseBranch() << "' of type '" << falseBranchType << "' "
+               << "does not match expected type '" << requiredType << "'.";
+            throw SemanticError(ss.str(), ternary.getFalseBranch().getLocation());
+        }
+        return requiredType;
     }
 
 } // namespace ingot::semantics

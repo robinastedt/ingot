@@ -11,5 +11,6 @@ add_library(ingotast STATIC
     List.cc
     Node.cc
     Operator.cc
+    Ternary.cc
     Type.cc
 )

@@ -1,23 +1,22 @@
 
 
-hello = () -> [i8] : () -> "Hello world and a very long good bye 💩"
-const = () -> i33 : () -> 4
+value0 = () -> [i8] : () -> "0"
+value1 = () -> [i8] : () -> "1"
+value2 = () -> [i8] : () -> "2"
+value3 = () -> [i8] : () -> "3"
 
-test = () -> i8 : () -> 127
+cond1 = () -> i1 : () -> 1  # 0x10
+cond2 = () -> i1 : () -> 1  # 0x01
 
-# Right now i{integer} looks like an identifier, but is in practice a reserved word
-# Do we want all types to start with capital letter?
-# normalName = (i5) -> i5 : (i5) -> i5
-# i5 = (i5) -> i5 : (i5) -> i5
+main = () -> [i8] : () -> 
+    if cond1() then 
+        if cond2() then
+            value3()
+        else
+            value2()
+    else
+        if cond2() then
+            value1()
+        else
+            value0()
 
-# Test shadowing. Right now rhs and rhs() looks like different identifiers
-# We want to be able to pass functions as arguments and used as values, so this should not work, but right now it does
-rhs = () -> i33 : () -> 0
-
-# Test wrong type of element
-#listtest = () -> [i9] : () -> ['a', 'b', test()]
-
-listOfLists = () -> [[i8]] : () -> ["hello", "world", "!"]
-
-add = (i33, i33) -> i33 : (lhs, rhs) -> lhs + 2 + rhs + rhs() + const()
-main = () -> [i8] : () -> hello()

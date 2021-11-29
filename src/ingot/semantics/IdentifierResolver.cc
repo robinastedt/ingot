@@ -49,5 +49,9 @@ namespace ingot::semantics
         return {};
     }
 
+    std::monostate
+    IdentifierResolver::postop(ast::Ternary& ternary, const std::tuple<std::monostate, std::monostate, std::monostate>& results, std::monostate) const {
+        return {};
+    }
 
 } // namespace ingot::semantics

@@ -41,6 +41,9 @@ string         (\"(\\.|[^"\\])*\")
 {char}              { yylval->emplace<int64_t>(charFromToken({YYText(), (size_t)YYLeng()})); return Parser::token::INTEGER; }
 {typeint}           { yylval->emplace<int64_t>(strtoll(YYText() + 1, nullptr, 10)); return Parser::token::TYPE_INT; }
 {integer}           { yylval->emplace<int64_t>(strtoll(YYText(), nullptr, 10)); return Parser::token::INTEGER; }
+"if"                { return Parser::token::KW_IF; }
+"then"                { return Parser::token::KW_THEN; }
+"else"                { return Parser::token::KW_ELSE; }
 {ident}             { yylval->emplace<std::string>(YYText()); return Parser::token::IDENT; }
 {string}            { yylval->emplace<std::string>(stringFromToken({YYText(), (size_t)YYLeng()})); return Parser::token::STRING; }
 "+"                 { return Parser::token::PLUS; }
