@@ -1,17 +1,6 @@
 # Function overloading
 Do we want this?
 
-# Improved syntax for integer literals
-* We want to use a integer literal and specify other size than 64 bit.
-* Could be useful for i8 without using characters, if we want 8 bit numbers.
-* Same with 16 or 32 bit etc.
-* Partly implemented now since we deduce type of integer literals by their usage
-
-# Syntax for list literals
-* Make list an expression type.
-* Support list literals, eg [1, 2, 3].
-* Replace String expression with List of i8 in AST.
-
 # Improve identifiers, functions first class
 * Unify identifier references, arguments and references to global scope functions, as well as passing functions as value
 * class ArgumentReference should instead be IdentifierReference
