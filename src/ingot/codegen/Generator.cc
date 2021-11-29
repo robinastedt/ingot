@@ -116,7 +116,7 @@ namespace ingot::codegen
             llvm::BasicBlock* body = llvm::BasicBlock::Create(m_context, "entry", function);
             builder.SetInsertPoint(body);
             CodegenVisitor visitor{function, typeContext, listOperationsCollection, semTree, userFunctions};
-            CodegenVisitorInfo info = definitionPtr->getFunction().getExpression().reduce(visitor);
+            CodegenVisitorInfo info = definitionPtr->getFunction().getExpression().traverse(visitor);
             builder.CreateRet(info.m_value);
         }
 

@@ -7,7 +7,7 @@
 
 namespace ingot::semantics
 {
-    class IdentifierResolver : public ast::Expression::UpdateVisitor<> {
+    class IdentifierResolver : public ast::Expression::Visitor<> {
         using DefMap = std::map<std::string, const ast::FunctionDefinition&>;
 
         const ast::Function& m_scopeFunction;
@@ -15,10 +15,10 @@ namespace ingot::semantics
     public:
         IdentifierResolver(const ast::Function& scopeFunction, const DefMap& definitionMap);
 
-        void operator()(ast::Integer& i, const std::monostate&) override;
-        void operator()(ast::String& str, const std::monostate&) override;
-        void operator()(ast::Operator& op, const std::monostate&) override;
-        void operator()(ast::FunctionCall& func, const std::monostate&) override;
-        void operator()(ast::ArgumentReference& arg, const std::monostate&) override;
+        std::monostate postop(ast::Integer& i, std::monostate) const override;
+        std::monostate postop(ast::String& str, std::monostate) const override;
+        std::monostate postop(ast::Operator& op, const std::pair<std::monostate, std::monostate>& argResults, std::monostate) const override;
+        std::monostate postop(ast::FunctionCall& func, const std::vector<std::monostate>& argResults, std::monostate) const override;
+        std::monostate postop(ast::ArgumentReference& arg, std::monostate) const override;
     };
 } // namespace ingot::semantics

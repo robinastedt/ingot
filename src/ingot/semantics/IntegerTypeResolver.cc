@@ -10,12 +10,12 @@
 namespace ingot::semantics
 {
     size_t
-    IntegerTypeResolver::preop(ast::Operator&, const size_t& input, OperatorSide) {
+    IntegerTypeResolver::preop(ast::Operator&, size_t input, OperatorSide) const {
         return input;
     }
 
     size_t
-    IntegerTypeResolver::preop(ast::FunctionCall& func, const size_t&, size_t index) {
+    IntegerTypeResolver::preop(ast::FunctionCall& func, size_t, size_t index) const {
         ast::Type argType = func.getFunctionType().getArgumentType(index);
         if (argType.getVariant() != ast::Type::Variant::Integer) {
             return 0;
@@ -43,8 +43,8 @@ namespace ingot::semantics
     } // namespace
     
 
-    void
-    IntegerTypeResolver::operator()(ast::Integer& i, const size_t& input) {
+    std::monostate
+    IntegerTypeResolver::postop(ast::Integer& i, size_t input) const {
         i.setSize(input);
         auto value = i.getValue();
 
@@ -57,22 +57,27 @@ namespace ingot::semantics
                 << "can not fit in resolved type '" << i.getType() << "'.";
             throw SemanticError(ss.str(), i.getLocation());
         }
+        return {};
     }
 
-    void
-    IntegerTypeResolver::operator()(ast::String& str, const size_t& input) {
+    std::monostate
+    IntegerTypeResolver::postop(ast::String& str, size_t input) const {
+        return {};
     }
 
-    void
-    IntegerTypeResolver::operator()(ast::Operator& op, const size_t& input) {
+    std::monostate
+    IntegerTypeResolver::postop(ast::Operator& op, const std::pair<std::monostate, std::monostate>& argResults, size_t input) const {
+        return {};
     }
 
-    void
-    IntegerTypeResolver::operator()(ast::FunctionCall& func, const size_t& input) {
+    std::monostate
+    IntegerTypeResolver::postop(ast::FunctionCall& func, const std::vector<std::monostate>& argResults, size_t input) const {
+        return {};
     }
 
-    void
-    IntegerTypeResolver::operator()(ast::ArgumentReference& arg, const size_t& input) {
+    std::monostate
+    IntegerTypeResolver::postop(ast::ArgumentReference& arg, size_t input) const {
+        return {};
     }
 
 } // namespace ingot::semantics

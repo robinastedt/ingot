@@ -14,7 +14,7 @@ namespace ingot::codegen
         ast::Type m_type;
     };
 
-    class CodegenVisitor : public ast::Expression::Visitor<CodegenVisitorInfo> {
+    class CodegenVisitor : public ast::Expression::ConstVisitor<CodegenVisitorInfo, std::monostate> {
         llvm::Module& m_module;
         llvm::IRBuilder<>& m_builder;
         llvm::Function* m_scopeFunction;
@@ -31,10 +31,10 @@ namespace ingot::codegen
             const semantics::SemanticTree& semanticTree,
             const std::map<const ast::FunctionDefinition*, llvm::Function*>& functionMap
         );
-        CodegenVisitorInfo operator()(const ast::Integer& i) override;
-        CodegenVisitorInfo operator()(const ast::String& str) override;
-        CodegenVisitorInfo operator()(const ast::Operator& op, CodegenVisitorInfo lhsResult, CodegenVisitorInfo rhsResult) override;
-        CodegenVisitorInfo operator()(const ast::FunctionCall& func, const std::vector<CodegenVisitorInfo>& results) override;
-        CodegenVisitorInfo operator()(const ast::ArgumentReference& arg) override;
+        CodegenVisitorInfo postop(const ast::Integer& i, std::monostate) const override;
+        CodegenVisitorInfo postop(const ast::String& str, std::monostate) const override;
+        CodegenVisitorInfo postop(const ast::Operator& op, const std::pair<CodegenVisitorInfo,CodegenVisitorInfo>& results, std::monostate) const override;
+        CodegenVisitorInfo postop(const ast::FunctionCall& func, const std::vector<CodegenVisitorInfo>& results, std::monostate) const override;
+        CodegenVisitorInfo postop(const ast::ArgumentReference& arg, std::monostate) const override;
     };
 } // namespace ingot::codegen

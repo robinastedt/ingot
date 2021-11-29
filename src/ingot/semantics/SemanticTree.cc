@@ -52,7 +52,7 @@ namespace ingot::semantics
             ast::Function& function = def.getFunction();
             ast::Expression& expr = function.getExpression();
             IdentifierResolver identifierResolver{function, m_definitionMap};
-            expr.update(identifierResolver);
+            expr.traverse(identifierResolver);
         }
 
         // Resolve types of integer literals
@@ -62,7 +62,7 @@ namespace ingot::semantics
             ast::Expression& expr = function.getExpression();
             ast::Type retType = function.getFunctionType().getReturnType();
             size_t retSize = retType.getVariant() == ast::Type::Variant::Integer ? retType.getSize() : 0;
-            expr.update(integerResolver, retSize);
+            expr.traverse(integerResolver, retSize);
         }
 
         // Check that types match
@@ -70,7 +70,7 @@ namespace ingot::semantics
         for (ast::FunctionDefinition& def : m_ast) {
             ast::Function& function = def.getFunction();
             ast::Expression& expr = function.getExpression();
-            ast::Type exprType = expr.reduce(typeResolver);
+            ast::Type exprType = expr.traverse(typeResolver);
             ast::Type retType = function.getFunctionType().getReturnType();
             if (exprType != retType) {
                 std::stringstream ss;

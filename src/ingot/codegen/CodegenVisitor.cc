@@ -26,13 +26,12 @@ namespace ingot::codegen
     , m_functionMap(functionMap) {}
 
     CodegenVisitorInfo
-    CodegenVisitor::operator()(const ast::Integer& i) {
-        
+    CodegenVisitor::postop(const ast::Integer& i, std::monostate) const {
         return {llvm::ConstantInt::get(m_builder.getIntNTy(i.getType().getSize()), i.getValue()), i.getType()};
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::operator()(const ast::String& str) {
+    CodegenVisitor::postop(const ast::String& str, std::monostate) const {
         const ListOperations& listOperations = m_listOperationsCollection.get(str.getType());
         llvm::Function* emptyFunction = listOperations.getEmptyFunction();
         llvm::Function* appendFunction = listOperations.getAppendFunction();
@@ -52,7 +51,9 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::operator()(const ast::Operator& op, CodegenVisitorInfo lhsResult, CodegenVisitorInfo rhsResult) {
+    CodegenVisitor::postop(const ast::Operator& op, const std::pair<CodegenVisitorInfo, CodegenVisitorInfo> &results, std::monostate) const {
+        const CodegenVisitorInfo& lhsResult = results.first;
+        const CodegenVisitorInfo& rhsResult = results.second;
         assert(lhsResult.m_type == rhsResult.m_type);
         ast::Type type = lhsResult.m_type;
         if (type.getVariant() == ast::Type::Variant::Integer) {
@@ -84,7 +85,7 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::operator()(const ast::FunctionCall& funcCall, const std::vector<CodegenVisitorInfo>& results) {
+    CodegenVisitor::postop(const ast::FunctionCall& funcCall, const std::vector<CodegenVisitorInfo>& results, std::monostate) const {
         auto defIt = m_semanticTree.findDefinition(funcCall.getName());
         if (defIt == m_semanticTree.end()) {
             throw internal_error("Could not find function definition in semantic tree: " + funcCall.getName());
@@ -105,7 +106,7 @@ namespace ingot::codegen
     }
 
     CodegenVisitorInfo
-    CodegenVisitor::operator()(const ast::ArgumentReference& arg) {
+    CodegenVisitor::postop(const ast::ArgumentReference& arg, std::monostate) const {
         return {m_scopeFunction->getArg(arg.getIndex()), arg.getType()};
     }
 } // namespace ingot::codegen

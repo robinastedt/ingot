@@ -10,17 +10,19 @@ namespace ingot::semantics
     TypeResolver::TypeResolver() {}
 
     ast::Type
-    TypeResolver::operator()(const ast::Integer& i) {
+    TypeResolver::postop(const ast::Integer& i, std::monostate) const {
         return i.getType();
     }
 
     ast::Type
-    TypeResolver::operator()(const ast::String& str) {
+    TypeResolver::postop(const ast::String& str, std::monostate) const {
         return str.getType();
     }
 
     ast::Type
-    TypeResolver::operator()(const ast::Operator& op, ast::Type lhsResult, ast::Type rhsResult) {
+    TypeResolver::postop(const ast::Operator& op, const std::pair<ast::Type, ast::Type>& results, std::monostate) const {
+        const ast::Type& lhsResult = results.first;
+        const ast::Type& rhsResult = results.second;
         if (lhsResult != rhsResult) {
             std::stringstream ss;
             ss << "In expression '" << op << "': Type of lhs '" << lhsResult << "' does not match type of rhs '" << rhsResult << "'";
@@ -30,7 +32,7 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::operator()(const ast::FunctionCall& func, const std::vector<ast::Type>& args) {
+    TypeResolver::postop(const ast::FunctionCall& func, const std::vector<ast::Type>& args, std::monostate) const {
         const ast::FunctionType& functionType = func.getFunctionType();
         const std::vector<ast::Type>& declTypes = functionType.getArgumentTypes();
         if (declTypes.size() != args.size()) {
@@ -56,7 +58,7 @@ namespace ingot::semantics
     }
 
     ast::Type
-    TypeResolver::operator()(const ast::ArgumentReference& arg) {
+    TypeResolver::postop(const ast::ArgumentReference& arg, std::monostate) const {
         return arg.getType();
     }
 
