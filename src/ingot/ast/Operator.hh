@@ -11,12 +11,12 @@ namespace ingot::ast
 
     class Operator : public Node {
     public:
-        enum class Variant : char {
-            Add = '+',
-            Sub = '-',
-            Mul = '*',
-            Div = '/',
-            Mod = '%',
+        enum class Variant {
+            Add,
+            Sub,
+            Mul,
+            Div,
+            Mod
         };
     private:
 
@@ -35,6 +35,8 @@ namespace ingot::ast
         const Expression& getRhs() const;
         Expression& getRhs();
         Variant getVariant() const;
+
+        static std::string variantToString(Variant var);
     };
 
     std::ostream& operator<<(std::ostream& str, const Operator& op);

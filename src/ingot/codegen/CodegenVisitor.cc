@@ -89,16 +89,7 @@ namespace ingot::codegen
                 case ast::Operator::Variant::Div: return { m_builder.GetInsertBlock(), m_builder.CreateSDiv(lhsResult.m_value, rhsResult.m_value, "tmpdiv"), type};
                 case ast::Operator::Variant::Mod: return { m_builder.GetInsertBlock(), m_builder.CreateSRem(lhsResult.m_value, rhsResult.m_value, "tmprem"), type};
             }
-            throw internal_error(std::string("Unhandled Operator::Variant: ") + (char)(op.getVariant()));
-        //} else if (type.getVariant() == ast::Type::Variant::List) {
-        //    switch (op.getVariant()) {
-        //        case ast::Operator::Variant::Add: {
-        //            const ListOperations& listOperations = m_listOperationsCollection.get(type);
-        //            llvm::Function* appendFunction = listOperations.getAppendFunction();
-        //            llvm::Function* 
-        //        } break;
-        //    }
-        //    throw internal_error(std::string("Unhandled Operator::Variant: ") + (char)(op.getVariant()));
+            throw internal_error("Unhandled Operator::Variant: " + ast::Operator::variantToString(op.getVariant()));
         }
         throw internal_error(std::string("Unhandled type: ") + type.getName());
         

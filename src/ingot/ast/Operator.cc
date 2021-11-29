@@ -50,11 +50,22 @@ namespace ingot::ast
         return m_variant;
     }
 
+    std::string
+    Operator::variantToString(Variant var) {
+        switch (var) {
+            case Variant::Add: return "+";
+            case Variant::Sub: return "-";
+            case Variant::Mul: return "*";
+            case Variant::Div: return "/";
+            case Variant::Mod: return "%";
+        }
+    }
+
     std::ostream& operator<<(std::ostream& str, const Operator& op) {
         return str << "(" << *op.m_lhs << op.m_variant << *op.m_rhs << ")";
     }
 
     std::ostream& operator<<(std::ostream& str, const Operator::Variant& variant) {
-        return str << static_cast<std::underlying_type_t<Operator::Variant>>(variant);
+        return str << Operator::variantToString(variant);
     }
 } // namespace ingot::ast
