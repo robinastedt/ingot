@@ -10,3 +10,8 @@ Do we want this?
 
 # Handle memory clean up for lists
 Current implementation is garbage and leaks everything.
+
+# Control flow
+We are currently not turing complete! (I think)
+* if/else function/keyword
+* map, reduce, fold, etc on lists. Also needs isEmpty, head, tail, etc.
